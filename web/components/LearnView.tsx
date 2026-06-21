@@ -3,17 +3,12 @@
 import { useStore, totals } from "@/lib/store";
 import { SourcesPanel } from "./learn/SourcesPanel";
 import { ChatPanel } from "./learn/ChatPanel";
-import { InsightsPanel } from "./learn/InsightsPanel";
-import { Pencil } from "lucide-react";
+import { CompressedContextPanel } from "./learn/CompressedContextPanel";
 
 // The Learn tab. Three-column workspace:
-//   left   = sources (the live compressed transcript + user-added text)
+//   left   = sources (the live compressed transcript + user-added text/files)
 //   center = streaming chat against those sources
-//   right  = one-click "study tools": summary, decisions, action items,
-//            flashcards, glossary
-//
-// Sources are shared with Compare — nothing here re-runs the pipeline. The
-// compression algorithm is "someone else's part"; we just consume the result.
+//   right  = the actual compressed context being sent to the LLM
 
 export function LearnView() {
   const name = useStore((s) => s.projectName);
@@ -41,14 +36,11 @@ export function LearnView() {
       <header className="glass-strong rounded-2xl p-5">
         <div className="flex items-start gap-4">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 group">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="bg-transparent text-xl font-bold tracking-tight text-ink focus:outline-none w-full"
-              />
-              <Pencil className="w-3.5 h-3.5 text-ink-faint opacity-0 group-hover:opacity-100 transition" />
-            </div>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="bg-transparent text-xl font-bold tracking-tight text-ink focus:outline-none w-full"
+            />
             <input
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
@@ -67,7 +59,7 @@ export function LearnView() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 min-h-[520px] h-[65vh]">
         <div className="lg:col-span-3 min-h-0"><SourcesPanel /></div>
         <div className="lg:col-span-6 min-h-0"><ChatPanel /></div>
-        <div className="lg:col-span-3 min-h-0"><InsightsPanel /></div>
+        <div className="lg:col-span-3 min-h-0"><CompressedContextPanel /></div>
       </div>
     </div>
   );

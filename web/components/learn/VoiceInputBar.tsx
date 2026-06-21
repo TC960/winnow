@@ -27,6 +27,7 @@ export function VoiceInputBar({ onSend, disabled, empty }: Props) {
   const [textMode, setTextMode] = useState(false);
   const [draft, setDraft] = useState("");
   const [audioLevel, setAudioLevel] = useState(0);
+  const [voiceErr, setVoiceErr] = useState<string | null>(null);
   const sourceRef = useRef<LiveMicSource | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -35,6 +36,7 @@ export function VoiceInputBar({ onSend, disabled, empty }: Props) {
 
   async function start() {
     if (listening || disabled) return;
+    setVoiceErr(null);
     try {
       const src = new LiveMicSource({ language });
       sourceRef.current = src;
@@ -46,14 +48,16 @@ export function VoiceInputBar({ onSend, disabled, empty }: Props) {
           if (text) onSend(text);
         } else if (evt.type === "error") {
           console.error("[voice]", evt.error);
+          setVoiceErr(evt.error.message);
           stop();
         }
       });
       await src.start();
       setListening(true);
       attachLevelMeter();
-    } catch (e) {
+    } catch (e: any) {
       console.error("voice start failed", e);
+      setVoiceErr(e?.message ?? "Failed to start voice input");
       stop();
     }
   }
@@ -120,6 +124,9 @@ export function VoiceInputBar({ onSend, disabled, empty }: Props) {
               ? "Each pause sends a message. Tap again to stop."
               : "Or use the keyboard toggle below for typing."}
           </div>
+          {voiceErr && (
+            <div className="text-[11px] text-raw mt-2 max-w-md mx-auto">⚠ {voiceErr}</div>
+          )}
         </div>
         <AnimatePresence>
           {partial && (
@@ -165,6 +172,11 @@ export function VoiceInputBar({ onSend, disabled, empty }: Props) {
   // and sits inside a pill-shaped container with a live waveform when active.
   return (
     <div className="border-t border-white/5 p-4">
+      {voiceErr && (
+        <div className="text-[11px] text-raw bg-raw/5 border border-raw/20 rounded-lg px-3 py-2 mb-2">
+          ⚠ {voiceErr}
+        </div>
+      )}
       {listening && partial && (
         <div className="text-[13px] text-keep/90 italic px-3 pb-2 truncate">
           "{partial}"
