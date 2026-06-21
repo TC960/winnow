@@ -2,12 +2,31 @@
 
 import type { SourceConfig, SourceListener, TranscriptSource, Utterance, Word } from "./types";
 
+// Common WebSocket close codes Deepgram emits, mapped to actionable hints.
+function dgCloseReason(code: number): string | null {
+  switch (code) {
+    case 1002: return "protocol error (audio format mismatch — likely sending containers when raw encoding was asserted)";
+    case 1003: return "unsupported data (Deepgram couldn't decode the audio)";
+    case 1008: return "policy violation (likely auth: API key invalid, expired, or missing scope)";
+    case 1011: return "Deepgram internal error";
+    case 4000: return "bad request (URL params rejected — check model/language/encoding)";
+    case 4001: return "unauthorized (API key invalid or missing)";
+    case 4008: return "payment required (Deepgram credits exhausted)";
+    case 4029: return "rate limited";
+    default: return null;
+  }
+}
+
 // Live microphone → Deepgram streaming → speech_final Utterance events.
 // The browser fetches a short-lived token from /api/deepgram-token and opens
 // a WebSocket subprotocol-authenticated to Deepgram. Audio is sent as Opus-in-WebM
 // chunks via MediaRecorder; transcripts come back as JSON over the same socket.
 
 const DG_URL = (cfg: SourceConfig) => {
+  // NB: do NOT set `encoding` here. MediaRecorder emits audio/webm;codecs=opus
+  // *containers* (not raw Opus frames); Deepgram sniffs the codec from the
+  // container MIME and closes the socket if `encoding=opus` is asserted but
+  // raw Opus packets aren't actually sent.
   const params = new URLSearchParams({
     model: "nova-3",
     smart_format: "true",
@@ -16,7 +35,6 @@ const DG_URL = (cfg: SourceConfig) => {
     endpointing: "60000",
     utterance_end_ms: "60000",
     vad_events: "true",
-    encoding: "opus",
   });
   if (cfg.language && cfg.language !== "multi") params.set("language", cfg.language);
   if (cfg.language === "multi") params.set("language", "multi");
@@ -82,8 +100,18 @@ export class LiveMicSource implements TranscriptSource {
     };
 
     this.ws.onmessage = (ev) => this.handleMessage(ev.data);
-    this.ws.onerror = () => this.emit({ type: "error", error: new Error("Deepgram socket error") });
-    this.ws.onclose = () => this.emit({ type: "status", status: "closed" });
+    // The browser WS API doesn't expose error details — the close event right
+    // after onerror does (code + reason). Surface both so we can actually debug.
+    let erroredAt = 0;
+    this.ws.onerror = () => { erroredAt = Date.now(); };
+    this.ws.onclose = (ev) => {
+      const wasError = Date.now() - erroredAt < 250 || (ev.code !== 1000 && ev.code !== 1005);
+      if (wasError) {
+        const reason = ev.reason?.trim() || dgCloseReason(ev.code) || `code ${ev.code}`;
+        this.emit({ type: "error", error: new Error(`Deepgram socket closed: ${reason}`) });
+      }
+      this.emit({ type: "status", status: "closed" });
+    };
   }
 
   private handleMessage(data: any) {

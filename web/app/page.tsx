@@ -5,7 +5,7 @@ import { useStore } from "@/lib/store";
 import { Tabs } from "@/components/Tabs";
 import { SourceToggle } from "@/components/SourceToggle";
 import { CompareView } from "@/components/CompareView";
-import { LearnView } from "@/components/LearnView";
+import { TestView } from "@/components/TestView";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function Page() {
@@ -55,14 +55,14 @@ export default function Page() {
             </motion.div>
           ) : (
             <motion.div
-              key="learn"
+              key="test"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.2 }}
               className="flex-1 flex flex-col gap-5 min-h-0"
             >
-              <LearnView />
+              <TestView />
             </motion.div>
           )}
         </AnimatePresence>

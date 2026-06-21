@@ -11,6 +11,11 @@ venv/
 .env.local
 .env.*.local
 
+# Editor swap files (vim writes .env.swp etc., which secret scanners flag)
+*.swp
+*.swo
+*~
+
 # eval/experiment artifacts (regenerated; not source)
 experiments/eval_results.json
 experiments/eval_outputs*.json
@@ -23,3 +28,6 @@ experiments/eval_outputs*.json
 .vscode/
 .idea/
 .claude/
+
+# ngrok tunnel log (written by run.sh)
+ngrok.log
