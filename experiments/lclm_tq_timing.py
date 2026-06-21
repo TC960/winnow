@@ -256,6 +256,83 @@ def _baseline_kv_bytes(cache):
 
 
 # ===========================================================================
+# Shared QA generation: instruction OUTSIDE memory, context INSIDE memory tags
+# (mirrors lclm_worker_modal.generate + the SCHEMA.md contract).
+# ===========================================================================
+QA_INSTRUCTION = (
+    "Answer the question using ONLY the provided context. Answer in as few words "
+    "as possible. If the answer is not present, respond with exactly: UNKNOWN."
+)
+
+
+def _generate_qa(self, context, question, max_new_tokens, make_cache, is_vanilla):
+    import torch
+
+    lclm_prompt = (
+        f"<|memory_start|>{context}<|memory_end|>\n\n{QA_INSTRUCTION}\n\n"
+        f"Question: {question}\nAnswer:"
+    )
+    formatted = f"<|im_start|>user\n{lclm_prompt}<|im_end|>\n<|im_start|>assistant\n"
+    processed = self.processor.process_wrapped_batch(
+        prompts=[formatted], targets=None, padding="longest",
+        truncation=True, return_tensors="pt",
+    )
+    input_ids = processed["input_ids"].to("cuda")
+    attention_mask = processed["attention_mask"].to("cuda")
+    memory_positions = processed["memory_positions"]
+    latent_counts = processed["latent_counts"]
+    memory_token_ids = processed["memory_token_ids"]
+
+    decoder_prompt_tokens = int(input_ids.shape[1])
+    n_latents = int(sum(
+        sum(c) if isinstance(c, list) else c for c in latent_counts
+    ))
+    input_context_tokens = len(self.tok.encode(context))
+
+    cache = make_cache()
+    gkw = dict(
+        max_new_tokens=max_new_tokens, do_sample=False, use_cache=True,
+        return_dict_in_generate=True,
+        pad_token_id=self.tok.pad_token_id, eos_token_id=self.tok.eos_token_id,
+    )
+    if cache is not None:
+        gkw["past_key_values"] = cache
+    with torch.inference_mode():
+        out = self.model.generate(
+            input_ids=input_ids, attention_mask=attention_mask,
+            memory_token_ids=memory_token_ids,
+            memory_positions=memory_positions,
+            latent_counts=latent_counts, **gkw,
+        )
+    gen_ids = out.sequences[0]
+    gen_tokens = int(gen_ids.shape[0])
+    text = self.tok.decode(gen_ids, skip_special_tokens=True)
+
+    if is_vanilla:
+        kv_bytes = _baseline_kv_bytes(out.past_key_values)
+        fp16_kv_bytes = kv_bytes
+        kv_compression_x = 1.0
+        eff_bits = 16.0
+    else:
+        kv_bytes = out.past_key_values.mem_bits() // 8
+        eff_bits = out.past_key_values.eff_bits()
+        seq = decoder_prompt_tokens + gen_tokens
+        fp16_kv_bytes = self.num_layers * 2 * self.num_kv_heads * self.head_dim * seq * 2
+        kv_compression_x = round(fp16_kv_bytes / kv_bytes, 2) if kv_bytes else None
+
+    return {
+        "text": text,
+        "input_context_tokens": int(input_context_tokens),
+        "latent_tokens": int(n_latents),
+        "decoder_prompt_tokens": int(decoder_prompt_tokens),
+        "kv_bytes": int(kv_bytes),
+        "fp16_kv_bytes": int(fp16_kv_bytes),
+        "kv_compression_x": kv_compression_x,
+        "eff_bits": round(float(eff_bits), 2),
+    }
+
+
+# ===========================================================================
 # Filler-context generator: coherent-ish prose of a target token length with a
 # planted needle fact, so we can sweep input length AND verify correctness.
 # ===========================================================================
@@ -461,6 +538,12 @@ class LCLMVanilla(_LCLMBase):
     def generate(self, target_tokens: int = 8000, max_new_tokens: int = 128):
         return self._run(target_tokens, max_new_tokens, lambda: (None, True))
 
+    @modal.method()
+    def generate_qa(self, context: str, question: str,
+                    max_new_tokens: int = 48, bit_width: int = 4):
+        return _generate_qa(self, context, question, max_new_tokens,
+                            make_cache=lambda: None, is_vanilla=True)
+
 
 @app.cls(
     image=image,
@@ -492,3 +575,11 @@ class LCLMTurboQuant(_LCLMBase):
                              outlier_channels, outlier_bits)
             return c, False
         return self._run(target_tokens, max_new_tokens, make_cache)
+
+    @modal.method()
+    def generate_qa(self, context: str, question: str,
+                    max_new_tokens: int = 48, bit_width: int = 4):
+        def make_cache():
+            return self.TQCache(self.head_dim, bit_width, self.num_layers, "cuda", 0, 0)
+        return _generate_qa(self, context, question, max_new_tokens,
+                            make_cache=make_cache, is_vanilla=False)
