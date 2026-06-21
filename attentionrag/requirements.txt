@@ -1,0 +1,12 @@
+# Core (selection logic + tests) needs only the stdlib.
+# The HF backend / Modal run needs the following (installed inside the Modal image):
+torch
+transformers>=4.44
+accelerate
+huggingface_hub
+hf_transfer
+sentencepiece
+protobuf
+modal
+# optional: faithful hint-prefix authoring via GPT-4o Mini (set OPENAI_API_KEY)
+# openai

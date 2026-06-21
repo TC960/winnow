@@ -46,7 +46,7 @@ app = modal.App("llmlingua2-xlm", image=image)
 
 
 @app.cls(
-    gpu="T4",
+    gpu="A100",  # A100 for faster compression (only affects cold-start cost)
     volumes={CACHE_DIR: hf_cache_vol},
     # Keep a warmed container alive 30 min after the last request so it stays hot
     # through a demo (between questions) without re-warming. Auto-scales to zero
