@@ -19,7 +19,41 @@ set, scored deterministically by having Claude answer comprehension questions
 - In multi-doc, the real bottleneck was the **reranker** dropping a relevant
   passage while keeping a distractor — not compression and not dedup.
 
-## Files
+## LCLM + TurboQuant: timing & memory benchmark
+
+A second, independent experiment lives alongside the eval above. It measures the
+**latency and memory** trade-off of running an **LCLM** (Latent Context Language
+Model — encoder→adapter→decoder soft-token context compressor, arXiv:2606.09659)
+decoder with **vanilla fp16 KV cache** vs. with **TurboQuant** KV-cache
+compression (`TQCache`, our training-free random-rotation + Lloyd-Max quantizer).
+
+The two arms run in **two separate warm Modal containers** (`LCLMVanilla` and
+`LCLMTurboQuant`, both A100-80GB) so peak-memory and timing are isolated. We
+sweep realistically long input contexts (filler docs with a planted "needle"
+fact) × TQ bit-widths × decode lengths, and report TTFT, decode tok/s, peak GPU
+MB, KV bytes, and KV compression ×.
+
+**Honest finding:** TurboQuant here is pure-PyTorch dequant (no custom CUDA
+kernel), so per-token decode is *slower* in wall-clock than fp16, while KV
+**memory** is much smaller. The win is memory, not speed (matches the paper,
+which needs custom kernels for speed). Both arms retrieve the needle correctly.
+See `lclm_tq_timing_report.md` for the measured numbers.
+
+### Re-running (from this folder)
+```bash
+cd experiments
+modal deploy lclm_tq_timing.py        # warm LCLMVanilla + LCLMTurboQuant workers
+python run_lclm_timing.py             # sweep -> lclm_tq_timing_results.json
+```
+The weights (`latent-context/0.6b-4b-LCLM-16x`) are read from the
+`turboquant-hf-cache` Modal volume (already populated; download-if-missing).
+
+### LCLM-timing files
+- `lclm_tq_timing.py` — Modal app: `LCLMVanilla` + `LCLMTurboQuant` warm workers, inlined `TQCache`, filler-context generator.
+- `run_lclm_timing.py` — driver: sweeps context × TQ config × decode length → `lclm_tq_timing_results.json`.
+- `lclm_tq_timing_report.md` — the measured timing/memory comparison report.
+
+## Files (MMR eval)
 - `eval_modal.py` — Modal app exposing `compress_eval` (encoder-only) + the MMR pre-pass.
 - `eval_sets.py` — the two task fixtures (ramble + multi-doc) with gold QA.
 - `run_eval.py` — driver: runs both tasks × {no-dedup, +dedup} × {0.75, 0.5} retention.
