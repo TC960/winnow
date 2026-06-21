@@ -8,3 +8,4 @@ experiments/eval_results.json
 experiments/eval_outputs*.json
 *.log
 .DS_Store
+.claude/

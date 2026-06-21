@@ -1,0 +1,156 @@
+[?25l⠋ Initializing...
+✓ Initialized. View run at 
+⠋ Initializing...
+⠋ Initializing...
+[?25h
+└── ⠋ Creating mount 
+    /Users/swastikagrawal/Documents/winnow/.claude/worktrees/turboquant-14b/turb
+    oquant-poc/modal_app.py: Uploaded 0/1 files
+└── ⠸ Creating mount 
+    /Users/swastikagrawal/Documents/winnow/.claude/worktrees/turboquant-14b/turb
+    oquant-poc/modal_app.py: Finalizing index of 1 files
+│   /Users/swastikagrawal/Documents/winnow/.claude/worktrees/turboquant-14b/turb
+│   oquant-poc/modal_app.py
+└── 🔨 Created function run.
+[?25h
+✓ Created objects.
+│   /Users/swastikagrawal/Documents/winnow/.claude/worktrees/turboquant-14b/turb
+│   oquant-poc/modal_app.py
+└── 🔨 Created function run.
+[?25l⠋ Running app...
+⠸ Running app...
+⠦ Running app...
+⠏ Running app...
+⠹ Running app...
+⠦ Running app...
+⠏ Running app...
+=== TurboQuant POC ===
+GPU: NVIDIA A100 80GB PCIe | CUDA 13.0 | torch 2.12.1+cu130
+Model: Qwen/Qwen2.5-14B-Instruct
+TurboQuant bit_width=3 outlier_channels=32 outlier_bits=4
+Loading model + tokenizer...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+Loaded: 48 layers, 8 KV heads, head_dim=128
+
+--- Baseline FP16 ---
+  200 tok, 26.3 tok/s, KV=47579136 B
+
+--- TurboQuant 3-bit ---
+  200 tok, 9.9 tok/s, KV=11151360 B, eff_bits=3.25
+
+==============================================================================
+PROMPT: Write a Python function to reverse a linked list and briefly explain it.
+------------------------------------------------------------------------------
+[BASELINE FP16]
+Certainly! Below is a Python implementation of a function that reverses a singly linked list. I'll also provide a brief explanation of how the function works.
+
+First, let's define a simple `Node` class for our linked list:
+
+```python
+class Node:
+    def __init__(self, value=0, next=None):
+        self.value = value
+        self.next = next
+```
+
+Now, here's the function to reverse the linked list:
+
+```python
+def reverse_linked_list(head):
+    prev_node = None
+    current_node = head
+    
+    while current_node is not None:
+        next_node = current_node.next  # Store the next node
+        current_node.next = prev_node  # Reverse the link
+        prev_node = current_node       # Move 'prev' one step forward
+        current_node = next_node       # Move 'current' one step forward
+    
+    return prev_node
+```
+
+### Explanation
+
+1. **Initialization**: We start with two
+------------------------------------------------------------------------------
+[TURBOQUANT 3.25-bit]
+To reverse a singly linked list in Python, you can follow these steps:
+
+1. Initialize three pointers: `prev` as `None`, `current` as the head of the list, and `next_node` as `None`.
+2. Traverse through the linked list:
+   - Before changing `current.next`, store the next node.
+   - Reverse the current node's pointer direction.
+   - Move the pointers one step forward.
+
+Here is a Python function that implements this logic:
+
+```python
+class ListNode:
+    def __init__(self, value=0, next=None):
+        self.value = value
+        self.next = next
+
+def reverse_linked_list(head):
+    prev = None
+    current = head
+    
+    while current:
+        # Store the next node
+        next_node = current.next
+        
+        # Reverse the current node's pointer
+        current.next = prev
+        
+        # Move the pointers one step forward
+        prev = current
+        current = next_node
+    
+    return
+==============================================================================
+KV-cache compression: 4.27x  (47579136 B -> 11151360 B)
+==============================================================================
+
+========== RESULT (local) ==========
+Model: Qwen/Qwen2.5-14B-Instruct
+Arch: 48 layers, 8 KV heads, head_dim=128
+KV compression: 4.27x | TQ eff_bits: 3.25
+Baseline: 26.3 tok/s | TurboQuant: 9.9 tok/s
+
+[TurboQuant output]
+To reverse a singly linked list in Python, you can follow these steps:
+
+1. Initialize three pointers: `prev` as `None`, `current` as the head of the 
+list, and `next_node` as `None`.
+2. Traverse through the linked list:
+   - Before changing `current.next`, store the next node.
+   - Reverse the current node's pointer direction.
+   - Move the pointers one step forward.
+
+Here is a Python function that implements this logic:
+
+```python
+class ListNode:
+    def __init__(self, value=0, next=None):
+        self.value = value
+        self.next = next
+
+def reverse_linked_list(head):
+    prev = None
+    current = head
+    
+    while current:
+        # Store the next node
+        next_node = current.next
+        
+        # Reverse the current node's pointer
+        current.next = prev
+        
+        # Move the pointers one step forward
+        prev = current
+        current = next_node
+    
+    return
+[?25h
+Stopping app - local entrypoint completed.
+✓ App completed. View run at 

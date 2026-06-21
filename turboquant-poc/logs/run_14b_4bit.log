@@ -1,0 +1,79 @@
+[?25l⠋ Initializing...
+✓ Initialized. View run at 
+⠋ Initializing...
+⠋ Initializing...
+[?25h
+└── ⠋ Creating mount 
+    /Users/swastikagrawal/Documents/winnow/.claude/worktrees/turboquant-14b/turb
+    oquant-poc/modal_app.py: Uploaded 0/1 files
+└── ⠸ Creating mount 
+    /Users/swastikagrawal/Documents/winnow/.claude/worktrees/turboquant-14b/turb
+    oquant-poc/modal_app.py: Uploaded 0/1 files
+│   /Users/swastikagrawal/Documents/winnow/.claude/worktrees/turboquant-14b/turb
+│   oquant-poc/modal_app.py
+└── ⠋ Creating function run...
+│   /Users/swastikagrawal/Documents/winnow/.claude/worktrees/turboquant-14b/turb
+│   oquant-poc/modal_app.py
+└── 🔨 Created function run.
+[?25h
+✓ Created objects.
+│   /Users/swastikagrawal/Documents/winnow/.claude/worktrees/turboquant-14b/turb
+│   oquant-poc/modal_app.py
+└── 🔨 Created function run.
+[?25l⠋ Running app...
+⠸ Running app...
+⠦ Running app...
+⠏ Running app...
+⠹ Running app...
+=== TurboQuant POC ===
+GPU: NVIDIA A100 80GB PCIe | CUDA 13.0 | torch 2.12.1+cu130
+Model: Qwen/Qwen2.5-14B-Instruct
+TurboQuant bit_width=4 outlier_channels=0 outlier_bits=0
+Loading model + tokenizer...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+
+Fetching 8 files:  12%|█▎        | 1/8 [01:34<11:03, 94.77s/it]
+
+Fetching 8 files:  38%|███▊      | 3/8 [01:37<01:52, 22.41s/it]
+Fetching 8 files:  75%|███████▌  | 6/8 [01:38<00:15,  7.77s/it]
+Fetching 8 files: 100%|██████████| 8/8 [01:38<00:00, 12.31s/it]
+
+Loaded: 48 layers, 8 KV heads, head_dim=128
+
+--- Baseline FP16 ---
+  98 tok, 23.9 tok/s, KV=28311552 B
+
+--- TurboQuant 4-bit ---
+
+========== RESULT (local) ==========
+Model: Qwen/Qwen2.5-14B-Instruct
+Arch: 48 layers, 8 KV heads, head_dim=128
+KV compression: 4.14x | TQ eff_bits: 4.0
+Baseline: 23.9 tok/s | TurboQuant: 17.7 tok/s
+
+[TurboQuant output]
+KV-cache quantization refers to the process of reducing the precision of 
+key-value cache entries used in transformer models, typically from 
+full-precision (e.g., 32-bit floats) to lower precision formats (e.g., 8-bit 
+integers). This technique significantly reduces memory usage and accelerates 
+inference by minimizing data movement and computation costs. It is crucial for 
+deploying large language models efficiently on devices with limited 
+computational resources.
+[?25h
+  85 tok, 17.7 tok/s, KV=6841344 B, eff_bits=4.0
+
+==============================================================================
+PROMPT: Explain what KV-cache quantization is and why it matters, in 3 sentences.
+------------------------------------------------------------------------------
+[BASELINE FP16]
+KV-cache quantization refers to the process of reducing the precision of key-value cache data used in transformer models, typically from full-precision (e.g., 32-bit floats) to lower precision formats (like 8-bit integers). This technique significantly reduces memory usage and computational costs during inference, making real-time processing more efficient and scalable on hardware with limited resources. By optimizing these aspects, KV-cache quantization enhances the practical deployment of large language models across various applications and devices.
+------------------------------------------------------------------------------
+[TURBOQUANT 4.0-bit]
+KV-cache quantization refers to the process of reducing the precision of key-value cache entries used in transformer models, typically from full-precision (e.g., 32-bit floats) to lower precision formats (e.g., 8-bit integers). This technique significantly reduces memory usage and accelerates inference by minimizing data movement and computation costs. It is crucial for deploying large language models efficiently on devices with limited computational resources.
+==============================================================================
+KV-cache compression: 4.14x  (28311552 B -> 6841344 B)
+==============================================================================
+Stopping app - local entrypoint completed.
+Runner terminated.
+✓ App completed. View run at 
