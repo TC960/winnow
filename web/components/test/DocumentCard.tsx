@@ -5,15 +5,12 @@ import { Upload, FileText, Loader2, X, AlertTriangle, RotateCw } from "lucide-re
 import { useStore } from "@/lib/store";
 import { StrikeText } from "./StrikeText";
 
-// Upload-a-document flow. Runs the FULL merge pipeline on the file content:
-//   PDF text extract → LLMLingua-2 (token compression) ∥ AttentionRAG (chunked,
-//   question-aware) → intersection-merge of the two keep-decisions.
-// The question is what tells AttentionRAG which spans matter; default
-// "Summarize this document" works for arbitrary uploads. User can edit it
-// and click "re-compress" to rerun with a different focus.
+// Upload-a-document flow. Extracts the file's text and runs LLMLingua-2
+//   PDF text extract → LLMLingua-2 (token compression)
+// over it, showing kept/dropped words. "re-compress" reruns with the current
+// keep-rate without re-extracting the PDF.
 
 const ACCEPT = ".pdf,.txt,.md,.markdown,.json,.csv,.tsv,.log,.xml,.html,.htm,.yaml,.yml,.py,.js,.ts,.tsx,.jsx,.go,.rs,.java,.c,.cpp,.h,.css,.sh,application/pdf,text/*";
-const DEFAULT_QUESTION = "Summarize this document";
 
 type Result = {
   filename: string;
@@ -25,17 +22,12 @@ type Result = {
   ratio: string;
   wordLabels?: [string, number][];
   latencyMs: number;
-  merged: boolean;
-  mergeMode?: string;
-  attnKeptChunks?: string;
-  usedFallback?: boolean;
 };
 
 export function DocumentCard() {
   const rate = useStore((s) => s.rate);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [question, setQuestion] = useState(DEFAULT_QUESTION);
   const [stage, setStage] = useState<"idle" | "extracting" | "compressing" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
@@ -77,7 +69,6 @@ export function DocumentCard() {
     setStage("compressing");
     setErrorMsg(null);
     const t0 = performance.now();
-    const q = question.trim() || DEFAULT_QUESTION;
     try {
       const r = await fetch("/api/compress", {
         method: "POST",
@@ -86,10 +77,6 @@ export function DocumentCard() {
           text: ex.text,
           rate,
           return_labels: true,
-          // Sending `question` triggers the full LLMLingua + AttentionRAG merge
-          // on the backend (intersection by default).
-          question: q,
-          mode: "intersection",
         }),
       });
       const j = await r.json();
@@ -104,10 +91,6 @@ export function DocumentCard() {
         ratio: j.ratio,
         wordLabels: j.word_labels,
         latencyMs: Math.round(performance.now() - t0),
-        merged: !!j.merged,
-        mergeMode: j.mode,
-        attnKeptChunks: j.attentionrag_kept_chunks ?? undefined,
-        usedFallback: !!j.used_llmlingua_fallback,
       });
       setStage("done");
     } catch (e: any) {
@@ -144,29 +127,18 @@ export function DocumentCard() {
         )}
       </header>
 
-      {/* Question field — drives the AttentionRAG side of the merge. */}
-      <div className="px-5 py-3 border-b border-white/5 space-y-1.5">
-        <label className="text-[10px] font-mono uppercase tracking-wider text-ink-faint">
-          question (drives attentionrag)
-        </label>
-        <div className="flex items-center gap-2">
-          <input
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder={DEFAULT_QUESTION}
-            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[13px] text-ink placeholder:text-ink-faint focus:outline-none focus:border-cyan-accent/50"
-          />
-          {extracted && (
-            <button
-              onClick={() => compress(extracted)}
-              disabled={busy}
-              className="text-[11px] font-mono uppercase tracking-wider px-3 py-2 rounded-lg bg-keep/15 border border-keep/40 text-keep hover:bg-keep/25 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
-            >
-              <RotateCw className={`w-3 h-3 ${busy ? "animate-spin" : ""}`} /> re-compress
-            </button>
-          )}
+      {/* Re-run LLMLingua-2 on the cached extract with the current keep-rate. */}
+      {extracted && (
+        <div className="px-5 py-3 border-b border-white/5 flex items-center justify-end">
+          <button
+            onClick={() => compress(extracted)}
+            disabled={busy}
+            className="text-[11px] font-mono uppercase tracking-wider px-3 py-2 rounded-lg bg-keep/15 border border-keep/40 text-keep hover:bg-keep/25 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+          >
+            <RotateCw className={`w-3 h-3 ${busy ? "animate-spin" : ""}`} /> re-compress
+          </button>
         </div>
-      </div>
+      )}
 
       <div className="flex-1 overflow-y-auto scroll-soft p-5 space-y-4">
         {!result && !busy && (
@@ -178,7 +150,7 @@ export function DocumentCard() {
             <div className="text-center">
               <div className="text-[14px] font-semibold text-ink">Drop a PDF or click to browse</div>
               <div className="text-[11px] text-ink-faint mt-1">
-                Question + document → LLMLingua-2 ∥ AttentionRAG → merge
+                Document → LLMLingua-2 token compression
               </div>
             </div>
           </button>
@@ -195,7 +167,7 @@ export function DocumentCard() {
         {busy && (
           <div className="flex items-center justify-center py-16 gap-2 text-ink-dim italic">
             <Loader2 className="w-4 h-4 animate-spin" />
-            <span>{stage === "extracting" ? "extracting text…" : "compressing (LLMLingua-2 ∥ AttentionRAG)…"}</span>
+            <span>{stage === "extracting" ? "extracting text…" : "compressing (LLMLingua-2)…"}</span>
           </div>
         )}
 
@@ -224,17 +196,9 @@ export function DocumentCard() {
               <Cell label="compression time" value={`${result.latencyMs} ms`} />
             </div>
 
-            {/* Merge diagnostics */}
+            {/* Pipeline diagnostics */}
             <div className="text-[10px] font-mono uppercase tracking-wider text-ink-faint">
-              {result.merged ? (
-                <>
-                  pipeline: llmlingua-2 ∥ attentionrag → <span className="text-ink">{result.mergeMode}</span>
-                  {result.usedFallback && <span className="text-amber-accent ml-1.5">· attnrag→fallback</span>}
-                  {result.attnKeptChunks && <span className="ml-1.5">· {result.attnKeptChunks} chunks kept</span>}
-                </>
-              ) : (
-                <>pipeline: llmlingua-2 (plain — no question)</>
-              )}
+              pipeline: llmlingua-2
             </div>
 
             <div className="rounded-xl border border-white/10 bg-white/[0.025] p-4">

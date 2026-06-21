@@ -10,7 +10,7 @@ import { runPanel, type PanelConfig, type PlaygroundResult } from "@/lib/playgro
 // each panel's parameters from the dropdowns and run the same input through both.
 
 const DEFAULT_A: PanelConfig = { compression: "llmlingua", llm: "claude" };
-const DEFAULT_B: PanelConfig = { compression: "both-intersection", llm: "chatgpt" };
+const DEFAULT_B: PanelConfig = { compression: "none", llm: "chatgpt" };
 
 export function CompareView() {
   const [input, setInput] = useState("");
@@ -26,7 +26,7 @@ export function CompareView() {
     setBusy(true);
     setResA(null);
     setResB(null);
-    // `question` feeds both the LLM and AttentionRAG (shared across panels).
+    // `question` is the instruction handed to the LLM (shared across panels).
     const [a, b] = await Promise.all([
       runPanel(input, question, cfgA).catch((e) => ({ error: String(e) })),
       runPanel(input, question, cfgB).catch((e) => ({ error: String(e) })),

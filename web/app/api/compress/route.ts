@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Thin proxy to the FastAPI/Modal compression worker. Keeps the Modal app and
 // its API key off the browser, and avoids CORS by going through same-origin.
-// Forwards the full merge-aware payload — when `question` is set, the backend
-// runs LLMLingua-2 AND AttentionRAG in parallel and merges via `mode`.
+// The frontend sends plain LLMLingua-2 requests; the `question`/`mode` merge
+// passthrough remains here only for backward compatibility with the backend.
 
 const BACKEND = process.env.COMPRESS_BACKEND_URL ?? "http://localhost:8000";
 

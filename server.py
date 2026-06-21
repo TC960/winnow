@@ -430,7 +430,39 @@ def _splice_spans(text: str, spans) -> str:
     return " ".join(text[s:e].strip() for s, e in spans).strip()
 
 
+def _word_tokens(s: str) -> int:
+    return len((s or "").split())
+
+
+def _with_token_stats(out: dict, original: str) -> dict:
+    """Normalize any Layer-1 result to a uniform {origin_tokens, compressed_tokens, ratio}.
+
+    The per-method branches below report counts under different keys (LLMLingua:
+    origin_tokens/compressed_tokens; merge: n_words/n_kept; AttentionRAG/passthrough:
+    none at all). The /playground frontend reads ONE shape, so collapse them here.
+    """
+    origin = out.get("origin_tokens")
+    if origin is None:
+        origin = out.get("n_words")
+    if origin is None:
+        origin = _word_tokens(original)
+    kept = out.get("compressed_tokens")
+    if kept is None:
+        kept = out.get("n_kept")
+    if kept is None:
+        kept = _word_tokens(out.get("compressed_text", ""))
+    out["origin_tokens"] = origin
+    out["compressed_tokens"] = kept
+    out["ratio"] = round(origin / kept, 2) if kept else None
+    return out
+
+
 async def _layer1(req: PlaygroundRequest) -> dict:
+    """Run Layer-1 compression and return a token-stat-normalized result."""
+    return _with_token_stats(await _layer1_raw(req), req.text)
+
+
+async def _layer1_raw(req: PlaygroundRequest) -> dict:
     """Run the selected Layer-1 compressor(s); return compressed text + stats."""
     methods = {m.strip().lower() for m in req.methods}
     use_llm, use_attn = "llmlingua" in methods, "attentionrag" in methods

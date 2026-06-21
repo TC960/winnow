@@ -1,11 +1,11 @@
 "use client";
 
-import { Mic, AudioLines, Scissors, Network, GitMerge, Box, ChevronRight } from "lucide-react";
+import { Mic, AudioLines, Scissors, Box, ChevronRight } from "lucide-react";
 import { useStore, totals } from "@/lib/store";
 
 // Visual pipeline strip for the Test tab. Purely architectural — tells the
 // demo's story end-to-end so a judge can see every stage at a glance:
-//   Voice → Deepgram → LLMLingua-2 → AttentionRAG → Merge(∩/∪) → Blackbox LLM
+//   Voice → Deepgram → LLMLingua-2 → Blackbox LLM
 // Sub-labels update with live numbers when compression runs.
 
 export function PipelineStrip() {
@@ -28,10 +28,6 @@ export function PipelineStrip() {
         sub={orig > 0 ? `${orig}→${comp} tok` : "token compression"}
         tint="#36f1a3"
       />
-      <Arrow />
-      <Stage icon={<Network className="w-3.5 h-3.5" />} label="AttentionRAG" sub="question-aware" tint="#c084fc" />
-      <Arrow />
-      <Stage icon={<GitMerge className="w-3.5 h-3.5" />} label="Merge" sub="intersection / union" tint="#ffd166" />
       <Arrow />
       <Stage icon={<Box className="w-3.5 h-3.5" />} label="Blackbox LLM" sub="downstream.py" tint="#10a37f" />
 

@@ -86,15 +86,53 @@ export function buildRequest(text: string, question: string, cfg: PanelConfig) {
   const l = LLM_MAP[cfg.llm];
   return {
     text,
-    // The top question feeds the LLM and, server-side, AttentionRAG's focus query.
+    // The top question is the instruction handed to the downstream LLM.
     question: question.trim() || null,
     methods: c.methods,
     combine: c.combine,
     rate: 0.7,
     backend: l.backend,
     quantized: l.quantized,
-    max_new_tokens: 4096, // effectively uncapped
+    max_new_tokens: 2048, // backend caps the output budget at 2048
   };
+}
+
+// FastAPI errors come back two ways: a plain string `detail`, or — for 422
+// validation failures — an ARRAY of {type, loc, msg, ...} objects. Rendering
+// that array directly crashes React ("Objects are not valid as a React child"),
+// so always collapse it to a readable string here.
+function formatError(data: any, status: number): string {
+  const d = data?.detail ?? data?.error;
+  if (typeof d === "string") return d;
+  if (Array.isArray(d)) {
+    const msg = d
+      .map((e) => {
+        const loc = Array.isArray(e?.loc) ? e.loc.filter((x: any) => x !== "body").join(".") : "";
+        return [loc, e?.msg].filter(Boolean).join(": ");
+      })
+      .filter(Boolean)
+      .join("; ");
+    return msg || `error ${status}`;
+  }
+  if (d && typeof d === "object") return JSON.stringify(d);
+  return `error ${status}`;
+}
+
+function wordCount(s?: string): number {
+  return s ? s.trim().split(/\s+/).filter(Boolean).length : 0;
+}
+
+// The backend's layer1 shape differs per compression path: LLMLingua emits
+// origin_tokens/compressed_tokens, while the passthrough path emits neither.
+// The panel reads a single unified set (origin_words/kept_words/hard_ratio),
+// so normalize here — preferring the backend's own counts, falling back to
+// word counts of the in/out text.
+function normalizeLayer1(l1: any, originalText: string) {
+  if (!l1) return l1;
+  const origin = l1.origin_tokens ?? l1.n_words ?? wordCount(originalText);
+  const kept = l1.compressed_tokens ?? l1.n_kept ?? wordCount(l1.compressed_text);
+  const ratio = kept > 0 ? Math.round((origin / kept) * 10) / 10 : undefined;
+  return { ...l1, origin_words: origin, kept_words: kept, hard_ratio: ratio };
 }
 
 export async function runPanel(
@@ -108,6 +146,7 @@ export async function runPanel(
     body: JSON.stringify(buildRequest(text, question, cfg)),
   });
   const data = await res.json();
-  if (!res.ok) return { error: data?.detail ?? data?.error ?? `error ${res.status}` };
+  if (!res.ok) return { error: formatError(data, res.status) };
+  if (data?.layer1) data.layer1 = normalizeLayer1(data.layer1, text);
   return data as PlaygroundResult;
 }

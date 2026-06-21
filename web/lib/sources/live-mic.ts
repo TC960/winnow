@@ -58,11 +58,14 @@ export class LiveMicSource implements TranscriptSource {
   private stream: MediaStream | null = null;
   private uttCounter = 0;
   private startedAt = 0;
-  // Demo mode: endpointing is cranked very high so a single Start→Stop cycle
-  // produces one utterance. When stop() sends CloseStream, Deepgram flushes
-  // with is_final=true but speech_final=false; this flag tells the handler to
-  // emit that close-flush as a real utterance instead of a dropped partial.
-  private flushing = false;
+  // Single-take mode: we never emit mid-recording. Deepgram finalizes the audio
+  // progressively (each is_final=true message is ONE segment, not the whole
+  // transcript), so we ACCUMULATE every finalized segment here and emit the full
+  // concatenation as one utterance when stop() flushes. Live partials are shown
+  // as accumulated-so-far + the current interim hypothesis.
+  private finalSegments: string[] = [];
+  private finalWords: Word[] = [];
+  private lastEndMs = 0;
 
   constructor(private cfg: SourceConfig = {}) {}
 
@@ -135,38 +138,29 @@ export class LiveMicSource implements TranscriptSource {
       const alt = msg.channel?.alternatives?.[0];
       if (!alt) return;
       const text = (alt.transcript ?? "").trim();
-      if (!text) return;
 
-      if (msg.speech_final || msg.is_final) {
-        // Normally we only emit on speech_final (real pause). During flush
-        // (post-CloseStream) endpointing won't have fired, so we promote the
-        // is_final close-flush into the demo's single utterance.
-        if (!msg.speech_final && !this.flushing) {
-          this.emit({ type: "partial", text });
-          return;
+      if (msg.is_final) {
+        // A finalized segment — append it to the running take. We do NOT emit a
+        // utterance here; the whole take is emitted once, on stop().
+        if (text) {
+          const words: Word[] = (alt.words ?? []).map((w: any) => ({
+            text: w.punctuated_word ?? w.word,
+            confidence: w.confidence,
+            speaker: w.speaker,
+            startMs: Math.round((w.start ?? 0) * 1000),
+          }));
+          this.finalSegments.push(text);
+          this.finalWords.push(...words);
+          if (alt.words?.length) {
+            this.lastEndMs = Math.round((alt.words[alt.words.length - 1].end ?? 0) * 1000);
+          }
         }
-        const words: Word[] = (alt.words ?? []).map((w: any) => ({
-          text: w.punctuated_word ?? w.word,
-          confidence: w.confidence,
-          speaker: w.speaker,
-          startMs: Math.round((w.start ?? 0) * 1000),
-        }));
-        const start = words[0]?.startMs ?? 0;
-        const end = words.length
-          ? Math.round((alt.words[alt.words.length - 1].end ?? 0) * 1000)
-          : start;
-        const utterance: Utterance = {
-          id: `u${++this.uttCounter}-${Date.now()}`,
-          text,
-          startMs: start,
-          endMs: end,
-          confidence: alt.confidence,
-          speaker: words[0]?.speaker,
-          words,
-        };
-        this.emit({ type: "utterance", utterance });
-      } else {
-        this.emit({ type: "partial", text });
+        // Show the full accumulated transcript so far.
+        this.emit({ type: "partial", text: this.finalSegments.join(" ") });
+      } else if (text) {
+        // Interim hypothesis — show accumulated text + the live guess.
+        const live = [this.finalSegments.join(" "), text].filter(Boolean).join(" ");
+        this.emit({ type: "partial", text: live });
       }
     } else if (msg.type === "SpeechStarted") {
       // could surface a "you're talking" indicator; skipped for now
@@ -176,22 +170,42 @@ export class LiveMicSource implements TranscriptSource {
   }
 
   async stop() {
-    this.flushing = true;
     try { this.recorder?.stop(); } catch {}
     try { this.stream?.getTracks().forEach((t) => t.stop()); } catch {}
     try {
       if (this.ws?.readyState === WebSocket.OPEN) {
-        // Tell Deepgram we're done so it flushes any pending final.
+        // Tell Deepgram we're done so it flushes any pending final segment,
+        // then wait for that last is_final to land in finalSegments before we
+        // build the utterance.
         this.ws.send(JSON.stringify({ type: "CloseStream" }));
-        // Give Deepgram a moment to send the flushed final before we close.
-        await new Promise((r) => setTimeout(r, 400));
+        await new Promise((r) => setTimeout(r, 800));
       }
       this.ws?.close();
     } catch {}
+
+    // Emit the entire take as a single utterance.
+    const text = this.finalSegments.join(" ").trim();
+    if (text) {
+      const words = this.finalWords;
+      const start = words[0]?.startMs ?? 0;
+      const end = this.lastEndMs || start;
+      const utterance: Utterance = {
+        id: `u${++this.uttCounter}-${Date.now()}`,
+        text,
+        startMs: start,
+        endMs: end,
+        speaker: words[0]?.speaker,
+        words,
+      };
+      this.emit({ type: "utterance", utterance });
+    }
+
     this.recorder = null;
     this.stream = null;
     this.ws = null;
-    this.flushing = false;
+    this.finalSegments = [];
+    this.finalWords = [];
+    this.lastEndMs = 0;
     this.emit({ type: "ended" });
   }
 }
