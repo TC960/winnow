@@ -24,6 +24,71 @@ A voice-first Claude-Projects-style workspace built around the compressed transc
 
 ---
 
+## Compression pipeline
+
+Winnow compresses along two orthogonal axes: **token-space** (which words survive,
+before the model) and **model-space** (sequence length + KV-cache bit-width, inside
+the model). The same input is fanned out to several papers in parallel, their
+keep-decisions are merged token-by-token, and the user picks how the compressed
+prompt is finally answered.
+
+```mermaid
+flowchart TD
+    A[Raw text / transcript] --> B[Compression stage]
+
+    subgraph PAR[Parallel compressors over the same input]
+      direction LR
+      C[LLMLingua-2<br/>extractive token classifier]
+      D[LongLLMLingua<br/>query-aware perplexity<br/>+ BGE reranker]
+      E[AttentionRAG<br/>attention-guided<br/>sentence pruning]
+    end
+
+    B --> C
+    B --> D
+    B --> E
+    C --> F[LLMLingua keep-mask]
+    D --> F
+    E --> G[AttentionRAG keep-spans]
+
+    F --> H{Token-by-token merge<br/>over original text}
+    G --> H
+    H -->|intersection: both kept| I[Compressed prompt]
+    H -->|union: either kept| I
+
+    I --> J{User routing}
+    J -->|Black box| K[Anthropic Claude /<br/>OpenAI GPT API]
+    J -->|Self-hosted + TurboQuant| L[Qwen + TurboQuant<br/>KV-cache bit quantization]
+    J -->|Self-hosted + LCLM| M[LCLM encoder→decoder<br/>soft tokens<br/>+ TurboQuant on decoder KV]
+
+    K --> N[Answer]
+    L --> N
+    M --> N
+```
+
+**Token-space (which words survive).** The text fans out to two compressor
+families at once — LLMLingua-2 (+ LongLLMLingua's query-aware reranker/perplexity
+arm) and AttentionRAG (attention-guided sentence pruning). Both produce per-token
+keep decisions, which Winnow merges token-by-token over the *original* text under a
+user-picked boolean rule: **intersection** (keep only if both kept — aggressive) or
+**union** (keep if either kept — recall-safe). The merge aligns both methods to one
+canonical token sequence rather than doing string membership, and falls back to
+LLMLingua-only if AttentionRAG gates everything out.
+
+**Model-space (how it's answered).** The compressed prompt then goes either to a
+**black-box API** (Claude / GPT, provider-agnostic), or to our **self-hosted**
+workers: **Qwen + TurboQuant** (KV-cache quantized to ~4 bits, 3–4× smaller via a
+data-free random-rotation `DynamicCache`), or **LCLM + TurboQuant** — LCLM
+compresses the context into a few latent soft tokens (fewer KV *entries*) while
+TurboQuant compresses the *bits per entry* of the same decoder cache, so the savings
+multiply.
+
+> **Papers:** LLMLingua-2 · LongLLMLingua · AttentionRAG (arXiv:2503.10720) · LCLM /
+> End-to-End Context Compression at Scale · TurboQuant (arXiv:2504.19874). We also
+> explored CompactPrompt's style-metric approach but it shipped no public dataset to
+> reproduce against. A full project write-up lives in [`DEVPOST.md`](DEVPOST.md).
+
+---
+
 ## Architecture
 
 ```
