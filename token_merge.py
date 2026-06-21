@@ -139,21 +139,24 @@ def splice_kept(
     word_spans: Sequence[Tuple[str, int, int, int]],
     keep: Sequence[bool],
 ) -> str:
+    """Reconstruct the compressed text from the kept canonical words.
+
+    Each kept word contributes ONLY its own token — the exact original substring
+    when its located span is valid & forward, else the label text — joined by a
+    single space. We deliberately do NOT re-slice arbitrary ``original[prev_end:s]``
+    gaps: when ``reconstruct_word_spans`` yields non-monotonic spans (repeated
+    tokens make the moving ``find()`` reset backward), that gap-fill re-inserts
+    large overlapping spans and blows the output up many-fold — worst in union,
+    which keeps long unbroken runs of words. Joining kept tokens keeps the output
+    bounded by the kept content (no duplication possible).
+    """
+    n = len(original)
     out: List[str] = []
-    prev_idx: Optional[int] = None
-    prev_end: Optional[int] = None
-    for i, ((word, _l, s, e), k) in enumerate(zip(word_spans, keep)):
+    for (word, _l, s, e), k in zip(word_spans, keep):
         if not k:
             continue
-        if prev_idx is None:
-            out.append(word)
-        elif i == prev_idx + 1 and prev_end is not None:
-            # adjacent canonical words -> keep the original separator verbatim
-            out.append(original[prev_end:s] + word)
-        else:
-            out.append(" " + word)
-        prev_idx, prev_end = i, e
-    return "".join(out)
+        out.append(original[s:e] if 0 <= s < e <= n else word)
+    return " ".join(out)
 
 
 # --------------------------------------------------------------------------- #
