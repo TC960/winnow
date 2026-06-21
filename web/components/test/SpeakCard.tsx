@@ -221,7 +221,7 @@ export function SpeakCard() {
             {listening ? "Listening… speak naturally" : "Tap to dictate a question"}
           </div>
           <div className="text-[11px] text-ink-faint mt-0.5">
-            LLMLingua-2 only · sent to Claude via downstream.py
+            LLMLingua-2 only · sent to Claude downstream
           </div>
           {partial && (
             <div className="text-[12px] text-ink-dim italic mt-1.5 truncate">"{partial}"</div>

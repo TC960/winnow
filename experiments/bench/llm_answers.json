@@ -1,0 +1,1120 @@
+{
+  "arm_group": "llm",
+  "meta": {
+    "model": "Qwen/Qwen2.5-14B-Instruct",
+    "arms": [
+      "vanilla_llm",
+      "llm_tq",
+      "lingua",
+      "union",
+      "intersection"
+    ],
+    "max_new_tokens": 48,
+    "n_jobs": 100,
+    "n_success": 100,
+    "n_failures": 0,
+    "failures": []
+  },
+  "answers": [
+    {
+      "id": "multifieldqa_en-0",
+      "arm": "llm_tq",
+      "answer": "South West Ultras",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 1702,
+        "output_tokens": 5
+      }
+    },
+    {
+      "id": "multifieldqa_en-1",
+      "arm": "llm_tq",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 4366,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "multifieldqa_en-1",
+      "arm": "vanilla_llm",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 4366,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "multifieldqa_en-0",
+      "arm": "vanilla_llm",
+      "answer": "South West Ultras",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1702,
+        "output_tokens": 5
+      }
+    },
+    {
+      "id": "multifieldqa_en-2",
+      "arm": "vanilla_llm",
+      "answer": "Low temperature scanning tunneling microscopy and spectroscopy (STM/STS) were used to study the quantum dot structures in this research.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 4989,
+        "output_tokens": 27
+      }
+    },
+    {
+      "id": "multifieldqa_en-2",
+      "arm": "llm_tq",
+      "answer": "Low temperature scanning tunneling microscopy and spectroscopy (STM/STS).",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 4989,
+        "output_tokens": 15
+      }
+    },
+    {
+      "id": "multifieldqa_en-3",
+      "arm": "vanilla_llm",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3435,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "multifieldqa_en-3",
+      "arm": "llm_tq",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 3435,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "multifieldqa_en-4",
+      "arm": "vanilla_llm",
+      "answer": "To form a conical section which, when combined with bending, results in the desired fuselage shape; unsloped sides would form a cylindrical section.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3223,
+        "output_tokens": 32
+      }
+    },
+    {
+      "id": "multifieldqa_en-4",
+      "arm": "llm_tq",
+      "answer": "To form a conical section that, when built, ensures structural integrity and design compliance as intended by the plans.",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 3223,
+        "output_tokens": 24
+      }
+    },
+    {
+      "id": "multifieldqa_en-5",
+      "arm": "vanilla_llm",
+      "answer": "The proximity of superconductivity tends to suppress the Kondo effect if the superconducting energy gap $2\\Delta$ becomes larger than the relevant Kondo temperature $T_K$.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 5396,
+        "output_tokens": 38
+      }
+    },
+    {
+      "id": "multifieldqa_en-5",
+      "arm": "llm_tq",
+      "answer": "The proximity of superconductivity can suppress the Kondo effect if the superconducting energy gap $2\\Delta$ becomes larger than the relevant Kondo temperature $T_K$. Additionally, the strength of superconducting pairing can affect the",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 5396,
+        "output_tokens": 48
+      }
+    },
+    {
+      "id": "multifieldqa_en-6",
+      "arm": "vanilla_llm",
+      "answer": "includes transport, heating, lighting, communications, and computation.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3323,
+        "output_tokens": 13
+      }
+    },
+    {
+      "id": "multifieldqa_en-6",
+      "arm": "llm_tq",
+      "answer": "includes transport, heating, lighting, communications, and computation.",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 3323,
+        "output_tokens": 13
+      }
+    },
+    {
+      "id": "multifieldqa_en-7",
+      "arm": "vanilla_llm",
+      "answer": "Vice Admiral",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3164,
+        "output_tokens": 4
+      }
+    },
+    {
+      "id": "multifieldqa_en-7",
+      "arm": "llm_tq",
+      "answer": "Vice Admiral",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 3164,
+        "output_tokens": 4
+      }
+    },
+    {
+      "id": "multifieldqa_en-8",
+      "arm": "vanilla_llm",
+      "answer": "1\u20130",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1953,
+        "output_tokens": 4
+      }
+    },
+    {
+      "id": "multifieldqa_en-8",
+      "arm": "llm_tq",
+      "answer": "1-0",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 1953,
+        "output_tokens": 4
+      }
+    },
+    {
+      "id": "multifieldqa_en-9",
+      "arm": "vanilla_llm",
+      "answer": "vitamins K3, K4, and K5",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3916,
+        "output_tokens": 12
+      }
+    },
+    {
+      "id": "multifieldqa_en-9",
+      "arm": "llm_tq",
+      "answer": "vitamins K3, K4, and K5",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 3916,
+        "output_tokens": 12
+      }
+    },
+    {
+      "id": "hotpotqa-0",
+      "arm": "vanilla_llm",
+      "answer": "Gates v. Collier\n\nBased on the information provided, Gates v. Collier is referenced as occurring in 1970-1971, whereas Miller v. California is stated to have occurred in 19",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3411,
+        "output_tokens": 48
+      }
+    },
+    {
+      "id": "hotpotqa-0",
+      "arm": "llm_tq",
+      "answer": "Gates v. Collier",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 3411,
+        "output_tokens": 7
+      }
+    },
+    {
+      "id": "hotpotqa-1",
+      "arm": "vanilla_llm",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3796,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-1",
+      "arm": "llm_tq",
+      "answer": "Charles L. Clifford",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 3796,
+        "output_tokens": 5
+      }
+    },
+    {
+      "id": "hotpotqa-2",
+      "arm": "vanilla_llm",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3493,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-2",
+      "arm": "llm_tq",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 3493,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-3",
+      "arm": "vanilla_llm",
+      "answer": "Jupiter\n(Note: The question asks for the primary destination based on the provided context. While Bennett was involved in multiple missions, Voyager, Galileo, and Ulysses are specifically mentioned, with Galileo and Voyager notably targeting Jupiter",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3457,
+        "output_tokens": 48
+      }
+    },
+    {
+      "id": "hotpotqa-3",
+      "arm": "llm_tq",
+      "answer": "Mars",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 3457,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-4",
+      "arm": "vanilla_llm",
+      "answer": "Film",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 4024,
+        "output_tokens": 2
+      }
+    },
+    {
+      "id": "hotpotqa-4",
+      "arm": "llm_tq",
+      "answer": "Film",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 4024,
+        "output_tokens": 2
+      }
+    },
+    {
+      "id": "hotpotqa-5",
+      "arm": "vanilla_llm",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3682,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-5",
+      "arm": "llm_tq",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 3682,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-6",
+      "arm": "vanilla_llm",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 4169,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-6",
+      "arm": "llm_tq",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 4169,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-7",
+      "arm": "vanilla_llm",
+      "answer": "Pleiospilos",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2236,
+        "output_tokens": 6
+      }
+    },
+    {
+      "id": "hotpotqa-7",
+      "arm": "llm_tq",
+      "answer": "Pleiospilos",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 2236,
+        "output_tokens": 6
+      }
+    },
+    {
+      "id": "hotpotqa-8",
+      "arm": "vanilla_llm",
+      "answer": "2013",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3523,
+        "output_tokens": 5
+      }
+    },
+    {
+      "id": "hotpotqa-8",
+      "arm": "llm_tq",
+      "answer": "2013",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 3523,
+        "output_tokens": 5
+      }
+    },
+    {
+      "id": "hotpotqa-9",
+      "arm": "vanilla_llm",
+      "answer": "Fitz and the Tantrums",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3792,
+        "output_tokens": 8
+      }
+    },
+    {
+      "id": "hotpotqa-9",
+      "arm": "llm_tq",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 3792,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "multifieldqa_en-0",
+      "arm": "lingua",
+      "answer": "South West Ultras",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1062,
+        "output_tokens": 5
+      }
+    },
+    {
+      "id": "multifieldqa_en-0",
+      "arm": "union",
+      "answer": "South West Ultras fan club",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1126,
+        "output_tokens": 7
+      }
+    },
+    {
+      "id": "multifieldqa_en-0",
+      "arm": "intersection",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 122,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "multifieldqa_en-1",
+      "arm": "lingua",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2473,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "multifieldqa_en-1",
+      "arm": "union",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2508,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "multifieldqa_en-1",
+      "arm": "intersection",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2508,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "multifieldqa_en-2",
+      "arm": "lingua",
+      "answer": "low temperature scanning tunneling microscopy spectroscopy",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2570,
+        "output_tokens": 9
+      }
+    },
+    {
+      "id": "multifieldqa_en-2",
+      "arm": "union",
+      "answer": "low temperature scanning tunneling microscopy and spectroscopy (STM/STS)",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3239,
+        "output_tokens": 15
+      }
+    },
+    {
+      "id": "multifieldqa_en-2",
+      "arm": "intersection",
+      "answer": "low temperature scanning tunneling microscopy spectroscopy",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 473,
+        "output_tokens": 9
+      }
+    },
+    {
+      "id": "multifieldqa_en-3",
+      "arm": "lingua",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1820,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "multifieldqa_en-3",
+      "arm": "union",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2405,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "multifieldqa_en-3",
+      "arm": "intersection",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 634,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "multifieldqa_en-4",
+      "arm": "lingua",
+      "answer": "To form a conical shape, which, when cut at an angle, results in an elliptical top longeron shape desired for the fuselage.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1771,
+        "output_tokens": 31
+      }
+    },
+    {
+      "id": "multifieldqa_en-4",
+      "arm": "union",
+      "answer": "It forms a conical section which, when combined with the flat top longeron, results in an elliptical shape from firewall to tailstock.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2087,
+        "output_tokens": 30
+      }
+    },
+    {
+      "id": "multifieldqa_en-4",
+      "arm": "intersection",
+      "answer": "to form conical section",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 478,
+        "output_tokens": 6
+      }
+    },
+    {
+      "id": "multifieldqa_en-5",
+      "arm": "lingua",
+      "answer": "Proximity of superconductivity induces pairing in quantum dots and can affect the Kondo effect, particularly in the sub-gap transport regime where the superconducting energy gap is larger than the Kondo temperature.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2805,
+        "output_tokens": 42
+      }
+    },
+    {
+      "id": "multifieldqa_en-5",
+      "arm": "union",
+      "answer": "The proximity of superconductivity tends to suppress the Kondo effect if the superconducting energy gap $2\\Delta$ becomes larger than the relevant Kondo temperature $T_K$.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3736,
+        "output_tokens": 38
+      }
+    },
+    {
+      "id": "multifieldqa_en-5",
+      "arm": "intersection",
+      "answer": "The proximity of superconductivity tends to suppress the Kondo effect if the superconducting energy gap $2\\Delta$ becomes larger than the relevant Kondo temperature $T_K$.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2076,
+        "output_tokens": 38
+      }
+    },
+    {
+      "id": "multifieldqa_en-6",
+      "arm": "lingua",
+      "answer": "transport, heating, lighting, communications, computation",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1816,
+        "output_tokens": 10
+      }
+    },
+    {
+      "id": "multifieldqa_en-6",
+      "arm": "union",
+      "answer": "Transport, heating, lighting, communications, computation",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2787,
+        "output_tokens": 10
+      }
+    },
+    {
+      "id": "multifieldqa_en-6",
+      "arm": "intersection",
+      "answer": "transport, heating, lighting, communications, computation",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1234,
+        "output_tokens": 10
+      }
+    },
+    {
+      "id": "multifieldqa_en-7",
+      "arm": "lingua",
+      "answer": "Vice Admiral",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1780,
+        "output_tokens": 4
+      }
+    },
+    {
+      "id": "multifieldqa_en-7",
+      "arm": "union",
+      "answer": "Vice Admiral",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2170,
+        "output_tokens": 4
+      }
+    },
+    {
+      "id": "multifieldqa_en-7",
+      "arm": "intersection",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 619,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "multifieldqa_en-8",
+      "arm": "lingua",
+      "answer": "1\u20130",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1236,
+        "output_tokens": 4
+      }
+    },
+    {
+      "id": "multifieldqa_en-8",
+      "arm": "union",
+      "answer": "UNKNOWN",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2927,
+        "output_tokens": 2
+      }
+    },
+    {
+      "id": "multifieldqa_en-8",
+      "arm": "intersection",
+      "answer": "UNKNOWN",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2927,
+        "output_tokens": 2
+      }
+    },
+    {
+      "id": "multifieldqa_en-9",
+      "arm": "lingua",
+      "answer": "K3, K4, K5",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2148,
+        "output_tokens": 9
+      }
+    },
+    {
+      "id": "multifieldqa_en-9",
+      "arm": "union",
+      "answer": "vitamins K3, K4, and K5",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2198,
+        "output_tokens": 12
+      }
+    },
+    {
+      "id": "multifieldqa_en-9",
+      "arm": "intersection",
+      "answer": "K3, K4, K5",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 154,
+        "output_tokens": 9
+      }
+    },
+    {
+      "id": "hotpotqa-0",
+      "arm": "lingua",
+      "answer": "Gates v. Collier",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1876,
+        "output_tokens": 7
+      }
+    },
+    {
+      "id": "hotpotqa-0",
+      "arm": "union",
+      "answer": "Gates v. Collier",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2089,
+        "output_tokens": 7
+      }
+    },
+    {
+      "id": "hotpotqa-0",
+      "arm": "intersection",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 310,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-1",
+      "arm": "lingua",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2173,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-1",
+      "arm": "union",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2190,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-1",
+      "arm": "intersection",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2190,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-2",
+      "arm": "lingua",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1980,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-2",
+      "arm": "union",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1993,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-2",
+      "arm": "intersection",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1993,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-3",
+      "arm": "lingua",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1914,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-3",
+      "arm": "union",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2081,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-3",
+      "arm": "intersection",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 273,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-4",
+      "arm": "lingua",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2270,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-4",
+      "arm": "union",
+      "answer": "film",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2960,
+        "output_tokens": 2
+      }
+    },
+    {
+      "id": "hotpotqa-4",
+      "arm": "intersection",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 891,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-5",
+      "arm": "lingua",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2072,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-5",
+      "arm": "union",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2081,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-5",
+      "arm": "intersection",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2081,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-6",
+      "arm": "lingua",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2379,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-6",
+      "arm": "union",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2436,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-6",
+      "arm": "intersection",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 162,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-7",
+      "arm": "lingua",
+      "answer": "Pleiospilos",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1266,
+        "output_tokens": 6
+      }
+    },
+    {
+      "id": "hotpotqa-7",
+      "arm": "union",
+      "answer": "Pleiospilos",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1486,
+        "output_tokens": 6
+      }
+    },
+    {
+      "id": "hotpotqa-7",
+      "arm": "intersection",
+      "answer": "Pleiospilos",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 366,
+        "output_tokens": 6
+      }
+    },
+    {
+      "id": "hotpotqa-8",
+      "arm": "lingua",
+      "answer": "2013",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1961,
+        "output_tokens": 5
+      }
+    },
+    {
+      "id": "hotpotqa-8",
+      "arm": "union",
+      "answer": "2013",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1979,
+        "output_tokens": 5
+      }
+    },
+    {
+      "id": "hotpotqa-8",
+      "arm": "intersection",
+      "answer": "2013",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1979,
+        "output_tokens": 5
+      }
+    },
+    {
+      "id": "hotpotqa-9",
+      "arm": "lingua",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2226,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-9",
+      "arm": "union",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2300,
+        "output_tokens": 3
+      }
+    },
+    {
+      "id": "hotpotqa-9",
+      "arm": "intersection",
+      "answer": "UNKNOWN.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 144,
+        "output_tokens": 3
+      }
+    }
+  ]
+}

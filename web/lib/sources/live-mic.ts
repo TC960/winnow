@@ -32,8 +32,16 @@ const DG_URL = (cfg: SourceConfig) => {
     smart_format: "true",
     interim_results: "true",
     punctuate: "true",
-    endpointing: "60000",
-    utterance_end_ms: "60000",
+    // 5-minute endpointing: we do NOT want real-time finalization. Deepgram
+    // only emits speech_final after this much continuous silence, so a normal
+    // Start→talk→Stop cycle never auto-finalizes mid-speech. The whole take is
+    // flushed as a single utterance when stop() sends CloseStream.
+    endpointing: "300000",
+    // Deepgram caps utterance_end_ms at 5000; higher values (we used to send
+    // 60000) reject the whole handshake with HTTP 400. The single-utterance
+    // demo behavior is driven by endpointing above, and UtteranceEnd events
+    // are ignored in handleMessage, so this value doesn't affect emission.
+    utterance_end_ms: "5000",
     vad_events: "true",
   });
   if (cfg.language && cfg.language !== "multi") params.set("language", cfg.language);

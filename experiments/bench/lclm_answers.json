@@ -1,0 +1,495 @@
+{
+  "arm_group": "lclm",
+  "meta": {
+    "app": "lclm-tq-timing",
+    "checkpoint": "latent-context/0.6b-4b-LCLM-16x",
+    "max_new_tokens": 48,
+    "bit_width": 4,
+    "n_examples": 20,
+    "n_answers": 40,
+    "failed": [],
+    "elapsed_s": 475.5
+  },
+  "answers": [
+    {
+      "id": "multifieldqa_en-2",
+      "arm": "vanilla_lclm",
+      "answer": "Low temperature scanning tunneling microscopy and spectroscopy (STM/STS)",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 4908,
+        "latent_tokens": 307,
+        "decoder_prompt_tokens": 367
+      }
+    },
+    {
+      "id": "multifieldqa_en-1",
+      "arm": "vanilla_lclm",
+      "answer": "No",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 4290,
+        "latent_tokens": 269,
+        "decoder_prompt_tokens": 324
+      }
+    },
+    {
+      "id": "multifieldqa_en-0",
+      "arm": "vanilla_lclm",
+      "answer": "South West Ultras fan club",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1625,
+        "latent_tokens": 102,
+        "decoder_prompt_tokens": 158
+      }
+    },
+    {
+      "id": "multifieldqa_en-3",
+      "arm": "vanilla_lclm",
+      "answer": "To treat heart ventricle contractions that delay in heart failure patients.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3360,
+        "latent_tokens": 210,
+        "decoder_prompt_tokens": 264
+      }
+    },
+    {
+      "id": "multifieldqa_en-4",
+      "arm": "vanilla_lclm",
+      "answer": "To create a conical shape that, when cut, forms an elliptical cross-section matching the intended design.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3137,
+        "latent_tokens": 197,
+        "decoder_prompt_tokens": 262
+      }
+    },
+    {
+      "id": "multifieldqa_en-5",
+      "arm": "vanilla_lclm",
+      "answer": "The proximity of superconductivity can suppress the Kondo effect, especially when the superconducting energy gap is large compared to the Kondo temperature.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 5313,
+        "latent_tokens": 333,
+        "decoder_prompt_tokens": 395
+      }
+    },
+    {
+      "id": "multifieldqa_en-6",
+      "arm": "vanilla_lclm",
+      "answer": "Transport, heating, lighting, communications, and computation.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3249,
+        "latent_tokens": 204,
+        "decoder_prompt_tokens": 257
+      }
+    },
+    {
+      "id": "multifieldqa_en-7",
+      "arm": "vanilla_lclm",
+      "answer": "Vice Admiral",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3083,
+        "latent_tokens": 193,
+        "decoder_prompt_tokens": 253
+      }
+    },
+    {
+      "id": "multifieldqa_en-8",
+      "arm": "vanilla_lclm",
+      "answer": "1\u20130",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 1872,
+        "latent_tokens": 117,
+        "decoder_prompt_tokens": 177
+      }
+    },
+    {
+      "id": "multifieldqa_en-9",
+      "arm": "vanilla_lclm",
+      "answer": "Vitamin K3, K4, and K5",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3840,
+        "latent_tokens": 240,
+        "decoder_prompt_tokens": 295
+      }
+    },
+    {
+      "id": "hotpotqa-1",
+      "arm": "vanilla_lclm",
+      "answer": "Charles L. Clifford",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3685,
+        "latent_tokens": 231,
+        "decoder_prompt_tokens": 321
+      }
+    },
+    {
+      "id": "hotpotqa-2",
+      "arm": "vanilla_lclm",
+      "answer": "UNKNOWN",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3407,
+        "latent_tokens": 213,
+        "decoder_prompt_tokens": 278
+      }
+    },
+    {
+      "id": "hotpotqa-0",
+      "arm": "vanilla_lclm",
+      "answer": "Miller v. California",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3328,
+        "latent_tokens": 208,
+        "decoder_prompt_tokens": 271
+      }
+    },
+    {
+      "id": "hotpotqa-3",
+      "arm": "vanilla_lclm",
+      "answer": "Mars",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3370,
+        "latent_tokens": 211,
+        "decoder_prompt_tokens": 277
+      }
+    },
+    {
+      "id": "hotpotqa-4",
+      "arm": "vanilla_lclm",
+      "answer": "on film",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3944,
+        "latent_tokens": 247,
+        "decoder_prompt_tokens": 306
+      }
+    },
+    {
+      "id": "hotpotqa-5",
+      "arm": "vanilla_lclm",
+      "answer": "Parliament",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3594,
+        "latent_tokens": 225,
+        "decoder_prompt_tokens": 292
+      }
+    },
+    {
+      "id": "hotpotqa-7",
+      "arm": "vanilla_lclm",
+      "answer": "Pleiospilos",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 2156,
+        "latent_tokens": 135,
+        "decoder_prompt_tokens": 195
+      }
+    },
+    {
+      "id": "hotpotqa-8",
+      "arm": "vanilla_lclm",
+      "answer": "2013",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3424,
+        "latent_tokens": 214,
+        "decoder_prompt_tokens": 292
+      }
+    },
+    {
+      "id": "hotpotqa-9",
+      "arm": "vanilla_lclm",
+      "answer": "UNKNOWN",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 3703,
+        "latent_tokens": 232,
+        "decoder_prompt_tokens": 300
+      }
+    },
+    {
+      "id": "hotpotqa-6",
+      "arm": "vanilla_lclm",
+      "answer": "Thirukkalacherry is a village in the Indian town of Thiruvaduthurai.",
+      "extra": {
+        "kv_compression_x": 1.0,
+        "eff_bits": 16.0,
+        "input_tokens": 4089,
+        "latent_tokens": 256,
+        "decoder_prompt_tokens": 315
+      }
+    },
+    {
+      "id": "multifieldqa_en-1",
+      "arm": "lclm_tq",
+      "answer": "No, the ISR is not necessary for transgene reactivation. The reactivation is mediated by MEK/ERK or JNK activity, not the ISR.",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 4290,
+        "latent_tokens": 269,
+        "decoder_prompt_tokens": 324
+      }
+    },
+    {
+      "id": "multifieldqa_en-2",
+      "arm": "lclm_tq",
+      "answer": "Low temperature scanning tunneling microscopy and spectroscopy (STM/STS)",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 4908,
+        "latent_tokens": 307,
+        "decoder_prompt_tokens": 367
+      }
+    },
+    {
+      "id": "multifieldqa_en-0",
+      "arm": "lclm_tq",
+      "answer": "South West Ultras fan club",
+      "extra": {
+        "kv_compression_x": 3.79,
+        "eff_bits": 4.0,
+        "input_tokens": 1625,
+        "latent_tokens": 102,
+        "decoder_prompt_tokens": 158
+      }
+    },
+    {
+      "id": "multifieldqa_en-3",
+      "arm": "lclm_tq",
+      "answer": "To treat heart rhythm problems by delivering electrical shocks to the heart.",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 3360,
+        "latent_tokens": 210,
+        "decoder_prompt_tokens": 264
+      }
+    },
+    {
+      "id": "multifieldqa_en-4",
+      "arm": "lclm_tq",
+      "answer": "To create a conical shape that, when cut, forms an elliptical cross-section matching the true profile of the fuselage.",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 3137,
+        "latent_tokens": 197,
+        "decoder_prompt_tokens": 262
+      }
+    },
+    {
+      "id": "multifieldqa_en-5",
+      "arm": "lclm_tq",
+      "answer": "The proximity of superconductivity can suppress the Kondo effect by increasing the effective Kondo temperature, making it harder to observe the Kondo effect in the presence of superconducting proximity.",
+      "extra": {
+        "kv_compression_x": 3.77,
+        "eff_bits": 4.0,
+        "input_tokens": 5313,
+        "latent_tokens": 333,
+        "decoder_prompt_tokens": 395
+      }
+    },
+    {
+      "id": "multifieldqa_en-6",
+      "arm": "lclm_tq",
+      "answer": "Transport, heating, lighting, communications, computing",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 3249,
+        "latent_tokens": 204,
+        "decoder_prompt_tokens": 257
+      }
+    },
+    {
+      "id": "multifieldqa_en-7",
+      "arm": "lclm_tq",
+      "answer": "Vice Admiral",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 3083,
+        "latent_tokens": 193,
+        "decoder_prompt_tokens": 253
+      }
+    },
+    {
+      "id": "multifieldqa_en-8",
+      "arm": "lclm_tq",
+      "answer": "1\u20130",
+      "extra": {
+        "kv_compression_x": 3.79,
+        "eff_bits": 4.0,
+        "input_tokens": 1872,
+        "latent_tokens": 117,
+        "decoder_prompt_tokens": 177
+      }
+    },
+    {
+      "id": "multifieldqa_en-9",
+      "arm": "lclm_tq",
+      "answer": "Vitamin K3 (menadione), K4 (phylloquinone), and K5 (menaquinone)",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 3840,
+        "latent_tokens": 240,
+        "decoder_prompt_tokens": 295
+      }
+    },
+    {
+      "id": "hotpotqa-0",
+      "arm": "lclm_tq",
+      "answer": "Miller v. California",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 3328,
+        "latent_tokens": 208,
+        "decoder_prompt_tokens": 271
+      }
+    },
+    {
+      "id": "hotpotqa-1",
+      "arm": "lclm_tq",
+      "answer": "Charles L. Clifford",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 3685,
+        "latent_tokens": 231,
+        "decoder_prompt_tokens": 321
+      }
+    },
+    {
+      "id": "hotpotqa-2",
+      "arm": "lclm_tq",
+      "answer": "UNKNOWN",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 3407,
+        "latent_tokens": 213,
+        "decoder_prompt_tokens": 278
+      }
+    },
+    {
+      "id": "hotpotqa-3",
+      "arm": "lclm_tq",
+      "answer": "Mars",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 3370,
+        "latent_tokens": 211,
+        "decoder_prompt_tokens": 277
+      }
+    },
+    {
+      "id": "hotpotqa-4",
+      "arm": "lclm_tq",
+      "answer": "on film",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 3944,
+        "latent_tokens": 247,
+        "decoder_prompt_tokens": 306
+      }
+    },
+    {
+      "id": "hotpotqa-5",
+      "arm": "lclm_tq",
+      "answer": "UNKNOWN",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 3594,
+        "latent_tokens": 225,
+        "decoder_prompt_tokens": 292
+      }
+    },
+    {
+      "id": "hotpotqa-6",
+      "arm": "lclm_tq",
+      "answer": "Thirukkalacherry is a village in the Indian town of Thiruvaduthurai.",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 4089,
+        "latent_tokens": 256,
+        "decoder_prompt_tokens": 315
+      }
+    },
+    {
+      "id": "hotpotqa-7",
+      "arm": "lclm_tq",
+      "answer": "Pleiospilos",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 2156,
+        "latent_tokens": 135,
+        "decoder_prompt_tokens": 195
+      }
+    },
+    {
+      "id": "hotpotqa-8",
+      "arm": "lclm_tq",
+      "answer": "2013",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 3424,
+        "latent_tokens": 214,
+        "decoder_prompt_tokens": 292
+      }
+    },
+    {
+      "id": "hotpotqa-9",
+      "arm": "lclm_tq",
+      "answer": "UNKNOWN",
+      "extra": {
+        "kv_compression_x": 3.78,
+        "eff_bits": 4.0,
+        "input_tokens": 3703,
+        "latent_tokens": 232,
+        "decoder_prompt_tokens": 300
+      }
+    }
+  ]
+}
