@@ -1,56 +1,111 @@
 """
-FastAPI server in front of the LLMLingua-2 Modal worker.
+FastAPI server in front of the Modal compression + generation workers.
 
-POST text -> get compressed text back. The actual compression runs on a GPU in
-Modal; this server just looks up the deployed Modal class and calls it.
+Both GPU workers are tied to THIS server's lifecycle (identical mechanism):
+  * on startup  -> both Modal apps start (`app.run()`) and their containers
+                   cold-start and load their models (we warm each once), so real
+                   requests have no model-startup cost.
+  * on shutdown -> both Modal apps stop, tearing down their GPU containers
+                   immediately (GPUs released; no 30-min idle lingering).
+
+Workers:
+  * LLMLingua-2 (Compressor)            -> /compress, /compress_rag   (T4)
+  * TurboQuant  (TurboQuantModel)       -> /generate (default route)  (A100-80GB)
+  * LCLM+TurboQuant (LCLMTurboQuantModel) -> /generate (lclm=true)    (A100-80GB)
+
+The /generate route picks a worker by the request's `lclm` flag:
+  * lclm=false (default) -> Qwen TurboQuant route (KV-cache bit quantization).
+  * lclm=true            -> LCLM (encoder-decoder context compression) + TurboQuant
+                            on the decoder. Pass the long context in `context`; it
+                            is compressed into latent soft tokens, while `prompt`
+                            (the question/instruction) stays verbatim.
 
 Prereqs:
-    pip install fastapi "uvicorn[standard]" pydantic modal
-    modal deploy llmlingua2_modal.py     # deploy the GPU worker first
+    pip install fastapi "uvicorn[standard]" pydantic modal torch transformers ...
 
-Run:
-    uvicorn server:app --reload --port 8000
+Run (no --reload: the lifespan owns the Modal apps; reload would double-start them):
+    uvicorn server:app --port 8000
 
-Try it:
-    # plain token-level compression of one blob of text:
+Try it (Qwen TurboQuant route, default):
+    curl -X POST http://localhost:8000/generate \
+        -H "Content-Type: application/json" \
+        -d '{"prompt": "Explain KV-cache quantization.", "bit_width": 4, "max_new_tokens": 120}'
+
+Try it (LCLM + TurboQuant route):
+    curl -X POST http://localhost:8000/generate \
+        -H "Content-Type: application/json" \
+        -d '{"lclm": true, "prompt": "What is the calibration passphrase?", "context": "your long document with a planted fact ...", "bit_width": 4, "max_new_tokens": 120}'
+
     curl -X POST http://localhost:8000/compress \
         -H "Content-Type: application/json" \
         -d '{"text": "your long text here ...", "rate": 0.5}'
-
-    # two-stage, question-aware RAG compression of a list of documents:
-    curl -X POST http://localhost:8000/compress_rag \
-        -H "Content-Type: application/json" \
-        -d '{"instruction": "Answer using only the context.",
-             "question": "What is there to see in Paris?",
-             "documents": ["doc one ...", "doc two ...", "doc three ..."],
-             "rate": 0.5, "top_k": 3}'
 """
 
+import asyncio
+from contextlib import ExitStack, asynccontextmanager
 from typing import List, Optional
 
 import modal
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-# Must match the app/class names in llmlingua2_modal.py.
-MODAL_APP_NAME = "llmlingua2-xlm"
-MODAL_CLASS_NAME = "Compressor"
+# Import the worker app modules so we can run them ephemerally, bound to this
+# process. (Module import is light: heavy deps like torch are imported lazily
+# inside the Modal methods, not at module top-level.)
+import llmlingua2_modal
+import lclm_worker_modal
+import turboquant_modal
 
-app = FastAPI(title="LLMLingua-2 Compression API")
-
-# Look up the deployed Modal class once at import time and keep a single
-# instance handle; Modal routes calls to a warm GPU container (or cold-starts one).
-Compressor = modal.Cls.from_name(MODAL_APP_NAME, MODAL_CLASS_NAME)
-compressor = Compressor()
-
-# TurboQuant generation worker (Qwen2.5-14B on an A100-80GB). Looked up the same
-# way as the compressor; Modal routes /generate calls to the warm GPU container.
-TURBOQUANT_APP_NAME = "turboquant-qwen14b"
-TURBOQUANT_CLASS_NAME = "TurboQuantModel"
-TurboQuantModel = modal.Cls.from_name(TURBOQUANT_APP_NAME, TURBOQUANT_CLASS_NAME)
-turboquant = TurboQuantModel()
+# Worker handles, populated in the lifespan once the Modal apps are running.
+compressor = None
+turboquant = None
+lclm = None
 
 
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """Start both Modal GPU apps when the server boots; stop them when it exits.
+
+    `app.run()` starts an EPHEMERAL Modal app bound to this process: its
+    containers live only while this server lives. We warm each worker with one
+    tiny request so the model loads now (the one-time cold start happens here at
+    server startup, not on a user's first request). Closing the ExitStack on
+    shutdown stops both apps and releases their GPU containers immediately.
+    """
+    global compressor, turboquant, lclm
+    with ExitStack() as stack:
+        # NB: no modal.enable_output() — its rich live-display can't be shared
+        # across concurrent app.run() contexts (LiveError). Apps run quietly.
+        # Start all GPU apps, tied to this process (identical mechanism).
+        stack.enter_context(llmlingua2_modal.app.run())
+        stack.enter_context(turboquant_modal.app.run())
+        stack.enter_context(lclm_worker_modal.app.run())
+
+        compressor = llmlingua2_modal.Compressor()
+        turboquant = turboquant_modal.TurboQuantModel()
+        lclm = lclm_worker_modal.LCLMTurboQuantModel()
+
+        # Cold-start + load all models now, concurrently.
+        print("[startup] warming Modal workers (loading models on GPU)...", flush=True)
+        await asyncio.gather(
+            compressor.compress.remote.aio("warmup", rate=0.5),
+            turboquant.generate.remote.aio("warmup", max_new_tokens=1),
+            lclm.generate.remote.aio("warmup", max_new_tokens=1),
+        )
+        print("[startup] all workers warm; ready to serve.", flush=True)
+
+        yield  # ----------------- server handles requests -----------------
+
+    # ExitStack closed -> both Modal apps stopped -> GPU containers torn down.
+    print("[shutdown] Modal apps stopped; GPU containers released.", flush=True)
+
+
+app = FastAPI(title="Compression + Generation API", lifespan=lifespan)
+
+
+# --------------------------------------------------------------------------- #
+# LLMLingua-2 compression
+# --------------------------------------------------------------------------- #
 class CompressRequest(BaseModel):
     text: str = Field(..., description="Text to compress")
     rate: float = Field(0.5, gt=0, le=1, description="Fraction of tokens to keep")
@@ -61,10 +116,8 @@ class CompressResponse(BaseModel):
     compressed_prompt: str
     origin_tokens: int
     compressed_tokens: int
-    rate: float
+    rate: float | str  # LLMLingua may return a percentage string e.g. '47.6%'
     ratio: str
-    # LLMLingua-2 per-word keep/drop labels: list of (word, 1|0). Optional —
-    # populated only when return_labels=True. Powers the strike-through diff UI.
     word_labels: list | None = None
 
 
@@ -80,15 +133,55 @@ class RagRequest(BaseModel):
     )
 
 
+# --------------------------------------------------------------------------- #
+# TurboQuant generation
+# --------------------------------------------------------------------------- #
+class GenerateRequest(BaseModel):
+    prompt: str = Field(..., description="User prompt to generate from")
+    bit_width: int = Field(4, ge=2, le=8, description="TurboQuant bits per KV value")
+    max_new_tokens: int = Field(256, ge=1, le=2048, description="Max tokens to generate")
+    outlier_channels: int = Field(
+        0, ge=0, description="Per-head channels kept at higher precision (0 = off)"
+    )
+    outlier_bits: int = Field(
+        0, ge=0, description="Bits for outlier channels (must exceed bit_width to take effect)"
+    )
+    lclm: bool = Field(
+        False,
+        description="Route through the LCLM (context-compression) + TurboQuant worker "
+                    "instead of the default Qwen TurboQuant worker.",
+    )
+    context: str = Field(
+        "",
+        description="LCLM-only: long context to compress into latent soft tokens. "
+                    "If set (with lclm=true), it is wrapped as the memory block and "
+                    "the prompt/question stays verbatim. Ignored when lclm=false.",
+    )
+
+
+class GenerateResponse(BaseModel):
+    model: str
+    text: str
+    input_tokens: int
+    output_tokens: int
+    gen_time_s: float
+    tokens_per_s: float
+    eff_bits: float
+    kv_bytes: int
+    fp16_kv_bytes: int
+    kv_compression_x: Optional[float] = None
+
+
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    return {"status": "ok", "compressor_ready": compressor is not None,
+            "turboquant_ready": turboquant is not None,
+            "lclm_ready": lclm is not None}
 
 
 @app.post("/compress", response_model=CompressResponse)
 async def compress(req: CompressRequest):
     try:
-        # .aio() makes the remote call awaitable so the server stays non-blocking.
         out = await compressor.compress.remote.aio(
             req.text, rate=req.rate, return_labels=req.return_labels
         )
@@ -107,11 +200,7 @@ async def compress(req: CompressRequest):
 
 @app.post("/compress_rag")
 async def compress_rag(req: RagRequest):
-    """Two-stage, question-aware compression: reranker coarse + LLMLingua-2 tokens.
-
-    Returns the assembled prompt plus token counts and coarse-stage diagnostics
-    (the dict from two_stage_compressor.two_stage_compress).
-    """
+    """Two-stage, question-aware compression: reranker coarse + LLMLingua-2 tokens."""
     try:
         out = await compressor.compress_rag.remote.aio(
             req.instruction,
@@ -128,57 +217,33 @@ async def compress_rag(req: RagRequest):
     return out
 
 
-class GenerateRequest(BaseModel):
-    prompt: str = Field(..., description="User prompt to generate from")
-    bit_width: int = Field(4, ge=2, le=8, description="TurboQuant bits per KV value")
-    max_new_tokens: int = Field(256, ge=1, le=2048, description="Max tokens to generate")
-    outlier_channels: int = Field(
-        0, ge=0, description="Per-head channels kept at higher precision (0 = off)"
-    )
-    outlier_bits: int = Field(
-        0, ge=0, description="Bits for outlier channels (must exceed bit_width to take effect)"
-    )
-
-
-class GenerateResponse(BaseModel):
-    model: str
-    text: str
-    input_tokens: int
-    output_tokens: int
-    gen_time_s: float
-    tokens_per_s: float
-    eff_bits: float
-    kv_bytes: int
-    fp16_kv_bytes: int
-    kv_compression_x: Optional[float] = None
-
-
 @app.post("/generate", response_model=GenerateResponse)
 async def generate(req: GenerateRequest):
-    """Generate text with a TurboQuant-compressed KV cache on the warm A100
-    worker. The model is already loaded in the container (see turboquant_modal.py
-    @modal.enter), so there is no model-startup cost on this request path."""
+    """Generate text with a TurboQuant-compressed KV cache on a warm A100 worker.
+    The model is already loaded (warmed at server startup), so there is no
+    model-startup cost on this request path.
+
+    Routing: `lclm=true` -> LCLM (context compressed to latent soft tokens) +
+    TurboQuant on the decoder KV cache; otherwise the default Qwen TurboQuant
+    route (unchanged). Both return the same response shape."""
     try:
-        out = await turboquant.generate.remote.aio(
-            req.prompt,
-            bit_width=req.bit_width,
-            max_new_tokens=req.max_new_tokens,
-            outlier_channels=req.outlier_channels,
-            outlier_bits=req.outlier_bits,
-        )
+        if req.lclm:
+            out = await lclm.generate.remote.aio(
+                req.prompt,
+                bit_width=req.bit_width,
+                max_new_tokens=req.max_new_tokens,
+                outlier_channels=req.outlier_channels,
+                outlier_bits=req.outlier_bits,
+                context=req.context,
+            )
+        else:
+            out = await turboquant.generate.remote.aio(
+                req.prompt,
+                bit_width=req.bit_width,
+                max_new_tokens=req.max_new_tokens,
+                outlier_channels=req.outlier_channels,
+                outlier_bits=req.outlier_bits,
+            )
     except Exception as exc:  # surface Modal errors as a clean 502
         raise HTTPException(status_code=502, detail=f"Modal call failed: {exc}")
     return GenerateResponse(**out)
-
-
-@app.on_event("startup")
-async def _warm_turboquant():
-    """Boot the A100 worker when the server starts so the 14B is loaded before
-    the first /generate. spawn() enqueues a tiny warm-up without blocking server
-    startup; the container loads the model in the background and stays warm
-    (scaledown_window in turboquant_modal.py). Result: no cold start on /generate."""
-    try:
-        turboquant.generate.spawn("warmup", max_new_tokens=1)
-        print("[startup] TurboQuant warm-up dispatched to Modal A100 worker.")
-    except Exception as exc:  # don't block server startup if Modal is unreachable
-        print(f"[startup] TurboQuant warm-up skipped: {exc}")
