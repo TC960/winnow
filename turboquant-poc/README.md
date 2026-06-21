@@ -16,15 +16,17 @@ Based on the reference implementation at https://github.com/OmarHory/turboquant
 
 ## Run
 ```bash
-# Default: Mistral-7B-Instruct-v0.3, 4-bit
+# Default: Qwen2.5-14B-Instruct on a single A100-80GB, 4-bit
 modal run modal_app.py --prompt "Your prompt here"
 
 # 3.5-bit outlier-aware (32 channels @ 4-bit, rest @ 3-bit; head_dim=128)
 modal run modal_app.py --prompt "..." --bit-width 3 --outlier-channels 32 --outlier-bits 4
 
-# Any standard MHA/GQA model — e.g. a 14B
-modal run modal_app.py --model-id Qwen/Qwen2.5-14B-Instruct --prompt "..."
+# Smaller/faster alternative
+modal run modal_app.py --model-id mistralai/Mistral-7B-Instruct-v0.3 --prompt "..."
 ```
+The GPU is fixed at `A100-80GB` in the `@app.function` decorator; the 14B in
+fp16 (~28 GB) plus KV cache fits comfortably, so one 80GB A100 is enough.
 Weights are cached on a Modal volume, so reruns skip the download.
 
 ## Validated on NVIDIA A100 80GB
