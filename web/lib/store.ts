@@ -53,6 +53,28 @@ export type RagStats = {
   rerankerScores: number[];
 };
 
+// Stats from the last /compress call made by the chat path. When the user has
+// uploaded documents, this carries the parallel LLMLingua-2 + AttentionRAG
+// merge results; otherwise it carries plain LLMLingua-2 numbers and
+// `mergedRan` is false (the UI gates merge-only callouts on this flag).
+export type MergeStats = {
+  mergedRan: boolean;                   // false => plain LLMLingua-2 only
+  mode: "intersection" | "union";
+  usedLlmlinguaFallback: boolean;
+  wordsTotal: number;
+  wordsKept: number;
+  mergedRatio: string;                  // e.g. "2.41x"
+  originTokens: number;
+  compressedTokens: number;
+  attentionRagKeptChunks?: string;      // e.g. "3/5"
+  attentionRagHintPrefix?: string;
+  llmlinguaRate: number;
+  llmlinguaRatio: string;
+};
+
+export type MergeMode = "intersection" | "union";
+export type Provider = "claude" | "chatgpt";
+
 type State = {
   rows: Row[];
   interim: string;                    // current partial transcript (raw column live tail)
@@ -68,15 +90,21 @@ type State = {
   qaPair?: { question: string; rawAnswer?: string; compressedAnswer?: string; streaming?: boolean };
 
   // Learn-tab state
-  tab: "compare" | "learn";
+  tab: "compare" | "test";
   projectName: string;
   projectDescription: string;
   extraSources: ExtraSource[];
   chatMessages: ChatMsg[];
   insights: Insights;
   insightLoading: Partial<Record<keyof Insights, boolean>>;
-  lastChatStats?: RagStats;        // most recent /compress_rag run from chat
+  lastChatStats?: RagStats;          // back-compat: filled when /compress_rag is used
+  lastChatMerge?: MergeStats;        // filled when project-chat uses LLMLingua + AttentionRAG merge
+  lastCompressedPrompt?: string;     // the actual compressed text the blackbox LLM saw
+  lastChatQuestion?: string;         // the user question that produced the last compressed prompt
   lastInsightStats: Partial<Record<keyof Insights, RagStats>>;
+  // Learn-tab pipeline knobs (Compare tab does not read these)
+  mergeMode: MergeMode;              // intersection (default) or union
+  provider: Provider;                // downstream blackbox: claude or chatgpt
 
   // setters
   setRate: (r: number) => void;
@@ -96,7 +124,7 @@ type State = {
   pushRecorded: (u: Utterance) => void;
   setQa: (qa: State["qaPair"]) => void;
 
-  setTab: (t: "compare" | "learn") => void;
+  setTab: (t: "compare" | "test") => void;
   setProjectName: (n: string) => void;
   setProjectDescription: (d: string) => void;
   addSource: (s: Omit<ExtraSource, "id">) => void;
@@ -108,7 +136,11 @@ type State = {
   setInsight: <K extends keyof Insights>(k: K, v: Insights[K]) => void;
   setInsightLoading: (k: keyof Insights, b: boolean) => void;
   setChatStats: (s?: RagStats) => void;
+  setChatMerge: (m?: MergeStats) => void;
+  setLastCompressed: (prompt?: string, question?: string) => void;
   setInsightStats: (k: keyof Insights, s?: RagStats) => void;
+  setMergeMode: (m: MergeMode) => void;
+  setProvider: (p: Provider) => void;
 };
 
 export const useStore = create<State>()((set, get) => ({
@@ -133,7 +165,12 @@ export const useStore = create<State>()((set, get) => ({
   insights: {},
   insightLoading: {},
   lastChatStats: undefined,
+  lastChatMerge: undefined,
+  lastCompressedPrompt: undefined,
+  lastChatQuestion: undefined,
   lastInsightStats: {},
+  mergeMode: "intersection",
+  provider: "claude",
 
   setRate: (rate) => set({ rate }),
   setModel: (model) => set({ model }),
@@ -195,8 +232,13 @@ export const useStore = create<State>()((set, get) => ({
   setInsightLoading: (k, b) =>
     set((st) => ({ insightLoading: { ...st.insightLoading, [k]: b } })),
   setChatStats: (s) => set({ lastChatStats: s }),
+  setChatMerge: (m) => set({ lastChatMerge: m }),
+  setLastCompressed: (lastCompressedPrompt, lastChatQuestion) =>
+    set({ lastCompressedPrompt, lastChatQuestion }),
   setInsightStats: (k, s) =>
     set((st) => ({ lastInsightStats: { ...st.lastInsightStats, [k]: s } })),
+  setMergeMode: (mergeMode) => set({ mergeMode }),
+  setProvider: (provider) => set({ provider }),
 }));
 
 // Derived selectors live as plain functions so we never re-render unnecessarily.

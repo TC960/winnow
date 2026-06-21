@@ -1,12 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { GitCompare, GraduationCap } from "lucide-react";
+import { GitCompare, FlaskConical } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/cn";
 
 // Top-level tab nav. Switching tabs DOES NOT reset session state — Compare
-// and Learn share the same compressed transcript, so flipping between them
+// and Test share the same compressed transcript, so flipping between them
 // is just a view change.
 
 export function Tabs() {
@@ -18,8 +18,8 @@ export function Tabs() {
       <TabBtn id="compare" active={tab === "compare"} onClick={() => setTab("compare")}>
         <GitCompare className="w-3.5 h-3.5" /> Compare
       </TabBtn>
-      <TabBtn id="learn" active={tab === "learn"} onClick={() => setTab("learn")}>
-        <GraduationCap className="w-3.5 h-3.5" /> Learn
+      <TabBtn id="test" active={tab === "test"} onClick={() => setTab("test")}>
+        <FlaskConical className="w-3.5 h-3.5" /> Test
       </TabBtn>
     </div>
   );

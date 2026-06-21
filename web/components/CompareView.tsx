@@ -6,10 +6,7 @@ import { StatsBar } from "./StatsBar";
 import { RateSlider } from "./RateSlider";
 import { ModelPicker } from "./ModelPicker";
 import { LanguagePicker } from "./LanguagePicker";
-import { OptionsBar } from "./OptionsBar";
 import { QABox } from "./QABox";
-import { FixtureRecorder } from "./FixtureRecorder";
-import { SessionExport } from "./SessionExport";
 import { DirectorOverlay } from "./DirectorOverlay";
 
 // The original Compare tab: live raw vs compressed feed, stats bar, A/B Q&A.
@@ -24,11 +21,7 @@ export function CompareView() {
         <ModelPicker />
         <div className="w-px h-5 bg-white/10" />
         <LanguagePicker />
-        <div className="w-px h-5 bg-white/10" />
-        <OptionsBar />
-        <div className="ml-auto flex items-center gap-2">
-          <FixtureRecorder />
-          <SessionExport />
+        <div className="ml-auto">
           <DirectorOverlay />
         </div>
       </div>
