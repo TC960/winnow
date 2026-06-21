@@ -8,17 +8,12 @@ import { cn } from "@/lib/cn";
 
 // Fidelity check for Trace mode. One click asks Claude the current question TWICE
 // in parallel: once against the full uncompressed history, once against the compact
-// (packed) history. The two answers sit side by side. Matching answers are the
-// proof that the keep / summarize / tombstone pack did not drop the buried detail.
-//
-// This reuses the Compare-tab parallel-Q&A endpoint (/api/qa) unchanged: raw =
-// full history, compressed = compact packed context.
+// (packed) history. The two answers sit side by side, and a SEMANTIC grader (the
+// same Claude judge trace/eval.py uses) decides whether they convey the same fact.
+// Aligned answers are the proof that the keep / summarize / tombstone pack did not
+// drop the buried detail. No brittle string equality.
 
-type Pair = { question: string; raw?: string; compact?: string };
-
-function normalize(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
-}
+type Pair = { question: string; raw?: string; compact?: string; aligned?: boolean };
 
 export function VerifyPanel() {
   const compactText = useStore((s) => s.traceCompactText);
@@ -37,14 +32,14 @@ export function VerifyPanel() {
     setLoading(true);
     setPair({ question: goal });
     try {
-      const res = await fetch("/api/qa", {
+      const res = await fetch("/api/verify", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ question: goal, raw: rawText, compressed: compactText, model }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "verify failed");
-      setPair({ question: goal, raw: data.raw.answer, compact: data.compressed.answer });
+      setPair({ question: goal, raw: data.raw.answer, compact: data.compact.answer, aligned: data.aligned });
     } catch (e: any) {
       setPair({ question: goal, raw: `error: ${e.message}`, compact: `error: ${e.message}` });
     } finally {
@@ -52,8 +47,7 @@ export function VerifyPanel() {
     }
   }
 
-  const match =
-    pair?.raw && pair?.compact ? normalize(pair.raw) === normalize(pair.compact) : null;
+  const aligned = pair?.aligned ?? null;
 
   return (
     <div className="px-5 py-2.5 border-b border-white/5 space-y-2.5">
@@ -81,16 +75,18 @@ export function VerifyPanel() {
           >
             <AnswerCard label="On full history" color="#ff5fb1" text={pair.raw} />
             <AnswerCard label="On compact history" color="#36f1a3" text={pair.compact} />
-            {match !== null && (
+            {aligned !== null && (
               <div
                 className={cn(
                   "md:col-span-2 rounded-lg px-3 py-2 text-[11px] font-mono uppercase tracking-wider text-center",
-                  match
+                  aligned
                     ? "bg-keep/10 border border-keep/30 neon-text-keep"
                     : "bg-amber-accent/10 border border-amber-accent/30 text-amber-accent"
                 )}
               >
-                {match ? "✓ answers match — pack preserved the answer" : "△ answers differ — inspect"}
+                {aligned
+                  ? "✓ same fact conveyed — pack preserved the answer"
+                  : "△ answers diverge — detail changed"}
               </div>
             )}
           </motion.div>
