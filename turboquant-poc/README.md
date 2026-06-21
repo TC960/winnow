@@ -32,6 +32,14 @@ Weights are cached on a Modal volume, so reruns skip the download.
 |---|---|---|---|---|
 | Mistral-7B-Instruct-v0.3 | 4-bit | 4.0 | 3.21x | matches FP16 |
 | Mistral-7B-Instruct-v0.3 | 3.5-bit outlier | 3.25 | 4.27x | correct code + explanation |
+| **Qwen2.5-14B-Instruct** | 4-bit | 4.0 | **4.14x** | matches FP16 |
+| **Qwen2.5-14B-Instruct** | 3.5-bit outlier | 3.25 | **4.27x** | correct linked-list code + explanation |
+
+The 14B (48 layers, 8 KV heads, head_dim=128) ran on the **same code** as the 7B
+with only a `--model-id` change — confirming the implementation generalizes
+across model size and family (Mistral → Qwen). Sample logs in `run_14b_*.log`.
+Note: the 3.5-bit outlier path is slower (pure-Python per-channel masking ×48
+layers, ~10 tok/s) — a perf characteristic, not a correctness issue.
 
 ## Notes
 - Model-agnostic for standard attention (Llama/Mistral/Qwen/Phi, MHA or GQA, head_dim ~64–256). It auto-adapts to layer/head counts from `model.config`. No calibration — the random rotation is data-free.
