@@ -20,8 +20,12 @@ Usage:
 
 import modal
 
-MODEL_ID = "mistralai/Mistral-7B-Instruct-v0.3"  # ungated, Apache-2.0
-FALLBACK_MODEL_ID = "unsloth/mistral-7b-instruct-v0.3"  # ungated mirror, if needed
+# Default model: Qwen2.5-14B-Instruct (48 layers, GQA, head_dim=128, ungated,
+# Apache-2.0). Validated on a single A100-80GB: ~28GB fp16 weights leave ample
+# headroom for the KV cache, so one 80GB A100 is sufficient (no multi-GPU).
+# Override with --model-id for other models, e.g. mistralai/Mistral-7B-Instruct-v0.3.
+MODEL_ID = "Qwen/Qwen2.5-14B-Instruct"
+ALT_MODEL_ID = "mistralai/Mistral-7B-Instruct-v0.3"  # smaller/faster alternative, ungated
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
@@ -107,6 +111,21 @@ def _build_tq_classes():
             x_hat = x_hat * norms.reshape(-1, 1)
             return x_hat.view(idx.shape)
 
+    # Every layer with the same (bit_width, dim, seed) builds an IDENTICAL
+    # rotation matrix + Lloyd-Max codebook. Building the codebook is CPU-bound
+    # scipy integration (~seconds each); doing it per-layer means 48x redundant
+    # work for a 14B model, which can take minutes on a CPU-starved container.
+    # Memoize so it's built once and shared across all layers.
+    _QUANTIZER_CACHE = {}
+
+    def _get_quantizer(bw, dim, dev, seed=42):
+        key = (bw, dim, str(dev), seed)
+        q = _QUANTIZER_CACHE.get(key)
+        if q is None:
+            q = TurboQuantMSE(bw, dim, dev, rotation_seed=seed)
+            _QUANTIZER_CACHE[key] = q
+        return q
+
     class TQLayer(DynamicLayer):
         def __init__(self, hd, bw, dev, num_outlier_ch=0, outlier_bw=0):
             super().__init__()
@@ -117,8 +136,8 @@ def _build_tq_classes():
             use_out = num_outlier_ch > 0 and outlier_bw > bw
             self._regular_dim = hd - num_outlier_ch if use_out else hd
             self._outlier_dim = num_outlier_ch if use_out else 0
-            self._tq = TurboQuantMSE(bw, self._regular_dim, dev)
-            self._tq_out = TurboQuantMSE(outlier_bw, num_outlier_ch, dev, rotation_seed=43) if self._outlier_dim > 0 else None
+            self._tq = _get_quantizer(bw, self._regular_dim, dev)
+            self._tq_out = _get_quantizer(outlier_bw, num_outlier_ch, dev, seed=43) if self._outlier_dim > 0 else None
             self._key_data, self._val_data = [], []
             self._ck = self._cv = None
             self._channel_mask = None
