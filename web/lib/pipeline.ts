@@ -3,7 +3,6 @@
 import { createSource, type SourceKind } from "./sources";
 import type { SourceConfig, TranscriptSource } from "./sources/types";
 import { useStore } from "./store";
-import { stripFillers } from "./tokens";
 
 // One pipeline at a time. Swapping kind tears down the old source and brings up
 // the new one against the SAME store + SAME compression call — that's the whole
@@ -51,12 +50,12 @@ export async function stopPipeline() {
 async function compressOne(id: string, text: string) {
   const store = useStore.getState();
   const t0 = performance.now();
-  const sendText = store.stripFillersFirst ? stripFillers(text) : text;
+  // strip-fillers pre-pass removed; always send the raw utterance.
   try {
     const res = await fetch("/api/compress", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ text: sendText, rate: store.rate, return_labels: true }),
+      body: JSON.stringify({ text, rate: store.rate, return_labels: true }),
     });
     if (!res.ok) throw new Error(`compress ${res.status}`);
     const data = await res.json();

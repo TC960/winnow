@@ -73,6 +73,15 @@ import turboquant_modal
 # Token-by-token merge of LLMLingua + AttentionRAG keep-decisions (pure-python).
 from token_merge import merge_compress, normalize_labels
 
+# Black-box downstream LLM callers (Claude / ChatGPT) reused for the playground.
+from downstream import (
+    DEFAULT_MODEL as BLACKBOX_DEFAULT_MODEL,
+    _call_claude,
+    _call_openai,
+    _canonical_provider,
+    _key_for,
+)
+
 # Worker handles, populated in the lifespan once the Modal apps are running.
 compressor = None
 attn_service = None
@@ -384,3 +393,133 @@ async def generate(req: GenerateRequest):
     except Exception as exc:  # surface Modal errors as a clean 502
         raise HTTPException(status_code=502, detail=f"Modal call failed: {exc}")
     return GenerateResponse(**out)
+
+
+# --------------------------------------------------------------------------- #
+# Unified playground: Layer 1 (compression) -> Layer 2 (downstream LLM)
+# --------------------------------------------------------------------------- #
+class PlaygroundRequest(BaseModel):
+    text: str = Field(..., description="The input text to compress + run through an LLM")
+    question: Optional[str] = Field(
+        None, description="Optional query — drives AttentionRAG and is asked of the LLM"
+    )
+    # ---- Layer 1: context compression --------------------------------------
+    methods: List[str] = Field(
+        default_factory=lambda: ["llmlingua"],
+        description="Subset of ['llmlingua','attentionrag']. Both -> token-merge.",
+    )
+    combine: str = Field("intersection", description="'intersection' or 'union' when both methods run")
+    rate: float = Field(0.7, gt=0, le=1, description="LLMLingua keep-rate")
+    # ---- Layer 2: downstream LLM -------------------------------------------
+    backend: str = Field("claude", description="'claude' | 'chatgpt' | 'qwen' | 'lclm'")
+    model: Optional[str] = Field(None, description="Model id for the black-box backends")
+    quantized: bool = Field(True, description="Qwen/LCLM: use the quantized KV cache (4-bit) vs 8-bit")
+    max_new_tokens: int = Field(256, ge=1, le=2048)
+    instruction: Optional[str] = Field(None, description="System/instruction for the LLM")
+
+
+def _splice_spans(text: str, spans) -> str:
+    """AttentionRAG-only reconstruction: stitch kept char-spans of the original."""
+    spans = sorted((s, e) for s, e in (spans or []) if e > s)
+    if not spans:
+        return text  # nothing kept -> don't wipe the input
+    return " ".join(text[s:e].strip() for s, e in spans).strip()
+
+
+async def _layer1(req: PlaygroundRequest) -> dict:
+    """Run the selected Layer-1 compressor(s); return compressed text + stats."""
+    methods = {m.strip().lower() for m in req.methods}
+    use_llm, use_attn = "llmlingua" in methods, "attentionrag" in methods
+    q = (req.question or "").strip()
+
+    if not use_llm and not use_attn:  # passthrough
+        return {"compressed_text": req.text, "methods": [], "note": "no compression"}
+
+    # AttentionRAG needs a query; without one, drop it (fall back to LLMLingua).
+    if use_attn and not q:
+        use_attn = False
+        attn_note = "attentionrag skipped (no question)"
+    else:
+        attn_note = None
+
+    if use_llm and use_attn:
+        llm_coro = compressor.compress.remote.aio(req.text, rate=req.rate, return_labels=True)
+        attn_coro = attn_service.compress_spans.remote.aio(req.text, q)
+        llm_out, attn_out = await asyncio.gather(llm_coro, attn_coro, return_exceptions=True)
+        if isinstance(llm_out, Exception):
+            raise HTTPException(status_code=502, detail=f"LLMLingua failed: {llm_out}")
+        labels = llm_out.get("fn_labeled_original_prompt") or llm_out.get("word_labels")
+        kept_spans = [] if isinstance(attn_out, Exception) else attn_out.get("kept_spans", [])
+        attn_empty = isinstance(attn_out, Exception) or not kept_spans
+        merged = merge_compress(req.text, labels, kept_spans, mode=req.combine, attnrag_empty=attn_empty)
+        return {
+            "compressed_text": merged["compressed_prompt"], "methods": ["llmlingua", "attentionrag"],
+            "combine": req.combine, "word_labels": merged["word_labels"],
+            "n_words": merged["n_words"], "n_kept": merged["n_kept"],
+            "used_llmlingua_fallback": merged["used_llmlingua_fallback"],
+        }
+
+    if use_llm:
+        out = await compressor.compress.remote.aio(req.text, rate=req.rate, return_labels=True)
+        return {"compressed_text": out["compressed_prompt"], "methods": ["llmlingua"],
+                "origin_tokens": out["origin_tokens"], "compressed_tokens": out["compressed_tokens"],
+                "note": attn_note}
+
+    # AttentionRAG only
+    attn_out = await attn_service.compress_spans.remote.aio(req.text, q)
+    return {"compressed_text": _splice_spans(req.text, attn_out.get("kept_spans", [])),
+            "methods": ["attentionrag"],
+            "kept_chunks": f"{attn_out.get('n_kept_chunks', 0)}/{attn_out.get('n_chunks', 0)}"}
+
+
+async def _layer2(req: PlaygroundRequest, context: str) -> dict:
+    """Run the compressed context through the selected downstream LLM."""
+    backend = req.backend.strip().lower()
+    q = (req.question or "").strip()
+    instruction = req.instruction or "Answer using the provided context."
+
+    if backend in ("claude", "anthropic", "chatgpt", "openai", "gpt"):
+        provider = _canonical_provider(backend)
+        key = _key_for(provider)
+        if not key:
+            raise HTTPException(status_code=400, detail=f"No API key for {provider}.")
+        model = req.model or BLACKBOX_DEFAULT_MODEL[provider]
+        user = f"{context}\n\nQuestion: {q}" if q else context
+        caller = _call_claude if provider == "claude" else _call_openai
+        # SDK calls are blocking -> offload so we don't stall the event loop.
+        text, in_tok, out_tok = await asyncio.to_thread(
+            caller, model, instruction, [{"role": "user", "content": user}],
+            req.max_new_tokens, 0.7, key,
+        )
+        return {"backend": provider, "model": model, "text": text,
+                "input_tokens": in_tok, "output_tokens": out_tok}
+
+    bit_width = 4 if req.quantized else 8
+    if backend == "qwen":
+        prompt = f"{context}\n\nQuestion: {q}" if q else context
+        out = await turboquant.generate.remote.aio(
+            prompt, bit_width=bit_width, max_new_tokens=req.max_new_tokens)
+        return {"backend": "qwen", "quantized": req.quantized, **out}
+    if backend == "lclm":
+        out = await lclm.generate.remote.aio(
+            q or "Summarize the key facts in the context.",
+            context=context, bit_width=bit_width, max_new_tokens=req.max_new_tokens)
+        return {"backend": "lclm", "quantized": req.quantized, **out}
+
+    raise HTTPException(status_code=422, detail=f"unknown backend: {backend!r}")
+
+
+@app.post("/playground")
+async def playground(req: PlaygroundRequest):
+    """End-to-end: Layer 1 (LLMLingua / AttentionRAG / both) -> Layer 2 (Claude /
+    ChatGPT / Qwen / LCLM). The frontend calls this once per comparison panel."""
+    if req.combine not in ("intersection", "union"):
+        raise HTTPException(status_code=422, detail=f"bad combine: {req.combine!r}")
+    try:
+        layer1 = await _layer1(req)
+        layer2 = await _layer2(req, layer1["compressed_text"])
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"playground failed: {exc}")
+    return {"layer1": layer1, "layer2": layer2}

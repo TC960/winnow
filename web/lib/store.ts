@@ -146,7 +146,7 @@ type State = {
 export const useStore = create<State>()((set, get) => ({
   rows: [],
   interim: "",
-  rate: 0.5,
+  rate: 0.7, // fixed 70% keep-rate (slider removed from the playground)
   model: "sonnet-4-6",
   language: "en-US",
   diarize: false,

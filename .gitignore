@@ -28,3 +28,6 @@ experiments/eval_outputs*.json
 .vscode/
 .idea/
 .claude/
+
+# ngrok tunnel log (written by run.sh)
+ngrok.log
