@@ -161,38 +161,52 @@ export function VoiceInputBar({ onSend, disabled, empty }: Props) {
     );
   }
 
-  // Compact bottom bar when there are already messages.
+  // Compact bottom bar — but visually rich. The mic is large, audio-reactive,
+  // and sits inside a pill-shaped container with a live waveform when active.
   return (
-    <div className="border-t border-white/5 p-3 space-y-2">
+    <div className="border-t border-white/5 p-4">
       {listening && partial && (
-        <div className="text-[13px] text-ink-dim italic px-2">
+        <div className="text-[13px] text-keep/90 italic px-3 pb-2 truncate">
           "{partial}"
           <span className="inline-block w-1 h-3 ml-1 bg-keep align-middle animate-pulse-glow" />
         </div>
       )}
-      <div className="flex items-center gap-2">
+      <div
+        className={cn(
+          "relative flex items-center gap-3 rounded-2xl p-2 transition-all duration-300",
+          listening
+            ? "bg-gradient-to-r from-raw/10 via-raw/5 to-transparent border border-raw/30 shadow-[0_0_30px_rgba(255,95,177,0.15)]"
+            : "bg-white/3 border border-white/10"
+        )}
+      >
+        {/* The mic — chunky, ringed, audio-reactive. */}
         <button
           onClick={() => (listening ? stop() : start())}
           disabled={disabled}
           className={cn(
-            "relative p-3 rounded-xl border transition flex items-center justify-center",
+            "relative shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-all",
             listening
-              ? "bg-raw/15 border-raw/40 text-raw"
-              : "bg-keep/15 border-keep/40 text-keep hover:bg-keep/25"
+              ? "bg-raw text-white shadow-[0_0_24px_rgba(255,95,177,0.55)]"
+              : "bg-gradient-to-br from-keep/80 to-cyan-accent/60 text-black shadow-[0_0_20px_rgba(54,241,163,0.4)] hover:shadow-[0_0_28px_rgba(54,241,163,0.6)]"
           )}
         >
           {listening && (
-            <span
-              className="absolute inset-0 rounded-xl bg-raw/20"
-              style={{
-                transform: `scale(${1 + audioLevel * 0.6})`,
-                opacity: 0.4 + audioLevel * 0.4,
-                transition: "transform 80ms ease-out, opacity 80ms ease-out",
-              }}
-            />
+            <>
+              <span
+                className="absolute inset-0 rounded-xl bg-raw/40"
+                style={{
+                  transform: `scale(${1 + audioLevel * 0.7})`,
+                  opacity: 0.3 + audioLevel * 0.5,
+                  transition: "transform 80ms ease-out, opacity 80ms ease-out",
+                }}
+              />
+              <span className="absolute inset-0 rounded-xl border-2 border-raw/50 animate-ping" style={{ animationDuration: "2s" }} />
+            </>
           )}
-          {listening ? <MicOff className="w-4 h-4 relative" /> : <Mic className="w-4 h-4 relative" />}
+          {listening ? <MicOff className="w-5 h-5 relative" /> : <Mic className="w-5 h-5 relative" />}
         </button>
+
+        {/* Center: either waveform (listening + voice mode), text input (text mode), or hint */}
         {textMode ? (
           <>
             <input
@@ -200,29 +214,64 @@ export function VoiceInputBar({ onSend, disabled, empty }: Props) {
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendDraft()}
               placeholder="Type instead…"
-              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[14px] text-ink placeholder:text-ink-faint focus:outline-none focus:border-cyan-accent/50"
+              autoFocus
+              className="flex-1 bg-transparent text-[14px] text-ink placeholder:text-ink-faint focus:outline-none px-2"
             />
             <button
               onClick={sendDraft}
               disabled={!draft.trim()}
-              className="p-2.5 rounded-xl bg-cyan-accent/15 border border-cyan-accent/40 text-cyan-accent hover:bg-cyan-accent/25 transition disabled:opacity-40"
+              className="shrink-0 p-2.5 rounded-xl bg-cyan-accent/15 border border-cyan-accent/40 text-cyan-accent hover:bg-cyan-accent/25 transition disabled:opacity-40"
             >
-              <Send className="w-3.5 h-3.5" />
+              <Send className="w-4 h-4" />
             </button>
           </>
+        ) : listening ? (
+          <div className="flex-1 flex items-center gap-3 px-1 min-w-0">
+            <Waveform level={audioLevel} />
+            <span className="text-[11px] font-mono uppercase tracking-wider text-raw shrink-0">
+              listening · pause to send
+            </span>
+          </div>
         ) : (
-          <div className="flex-1 text-[13px] text-ink-dim italic px-2">
-            {listening ? "Listening — speak, then pause to send" : "Tap the mic and start talking"}
+          <div className="flex-1 text-[14px] text-ink-dim italic px-2 truncate">
+            Tap the mic and start talking
           </div>
         )}
+
         <button
           onClick={() => setTextMode((m) => !m)}
           title={textMode ? "Switch to voice" : "Switch to typing"}
-          className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-ink-dim hover:text-ink hover:bg-white/10 transition"
+          className="shrink-0 p-2.5 rounded-xl bg-white/5 border border-white/10 text-ink-dim hover:text-ink hover:bg-white/10 transition"
         >
           <Keyboard className="w-3.5 h-3.5" />
         </button>
       </div>
+    </div>
+  );
+}
+
+// Compact live waveform driven by the audio level. Twelve bars, each with a
+// pseudo-random envelope so the meter feels organic instead of metronomic.
+function Waveform({ level }: { level: number }) {
+  const bars = 14;
+  return (
+    <div className="flex-1 flex items-center gap-[3px] h-6 min-w-0 overflow-hidden">
+      {Array.from({ length: bars }).map((_, i) => {
+        const phase = (i / bars) * Math.PI * 2;
+        const envelope = 0.4 + 0.6 * Math.abs(Math.sin(phase + Date.now() / 220));
+        const h = Math.max(3, level * envelope * 24);
+        return (
+          <span
+            key={i}
+            className="w-[3px] rounded-full bg-gradient-to-t from-raw/60 to-keep/80"
+            style={{
+              height: `${h}px`,
+              opacity: 0.5 + level * 0.5,
+              transition: "height 80ms ease-out, opacity 80ms ease-out",
+            }}
+          />
+        );
+      })}
     </div>
   );
 }

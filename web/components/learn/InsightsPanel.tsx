@@ -9,12 +9,12 @@ import { cn } from "@/lib/cn";
 
 type ActionId = "summary" | "decisions" | "actions" | "flashcards" | "glossary";
 
-const ACTIONS: { id: ActionId; label: string; icon: React.ReactNode; tint: string }[] = [
-  { id: "summary",    label: "Summary",      icon: <FileText className="w-3.5 h-3.5" />,   tint: "#6ee7ff" },
-  { id: "decisions",  label: "Decisions",    icon: <CheckSquare className="w-3.5 h-3.5" />, tint: "#36f1a3" },
-  { id: "actions",    label: "Action items", icon: <ListChecks className="w-3.5 h-3.5" />, tint: "#ffd166" },
-  { id: "flashcards", label: "Flashcards",   icon: <Layers className="w-3.5 h-3.5" />,     tint: "#ff5fb1" },
-  { id: "glossary",   label: "Glossary",     icon: <BookA className="w-3.5 h-3.5" />,      tint: "#c084fc" },
+const ACTIONS: { id: ActionId; label: string; hint: string; icon: React.ReactNode; tint: string }[] = [
+  { id: "summary",    label: "Summary",     hint: "3-5 sentence digest",       icon: <FileText className="w-4 h-4" />,    tint: "#6ee7ff" },
+  { id: "decisions",  label: "Decisions",   hint: "What was resolved",         icon: <CheckSquare className="w-4 h-4" />, tint: "#36f1a3" },
+  { id: "actions",    label: "Action items",hint: "Who does what next",        icon: <ListChecks className="w-4 h-4" />,  tint: "#ffd166" },
+  { id: "flashcards", label: "Flashcards",  hint: "Study cards, flippable",    icon: <Layers className="w-4 h-4" />,      tint: "#ff5fb1" },
+  { id: "glossary",   label: "Glossary",    hint: "Terms & names defined",     icon: <BookA className="w-4 h-4" />,       tint: "#c084fc" },
 ];
 
 // One-click "study tools" panel. Each button fires a structured JSON action
@@ -76,25 +76,43 @@ export function InsightsPanel() {
         {ACTIONS.map((a) => {
           const has = insights[a.id] !== undefined;
           const isLoading = !!loading[a.id];
+          const isOpen = open === a.id;
           return (
             <button
               key={a.id}
               onClick={() => openCached(a.id)}
               className={cn(
-                "rounded-xl border p-2.5 text-left transition flex flex-col gap-1.5 group",
-                open === a.id ? "border-white/30 bg-white/5" : "border-white/8 bg-white/3 hover:bg-white/5"
+                "relative rounded-xl border p-3 text-left transition-all overflow-hidden group",
+                isOpen
+                  ? "border-white/25 bg-white/[0.06]"
+                  : "border-white/10 bg-white/[0.025] hover:bg-white/[0.05] hover:border-white/20 hover:-translate-y-[1px]"
               )}
+              style={
+                isOpen
+                  ? { boxShadow: `inset 0 0 0 1px ${a.tint}30, 0 0 20px ${a.tint}10` }
+                  : undefined
+              }
             >
-              <div className="flex items-center justify-between">
-                <div style={{ color: a.tint }} className="flex items-center gap-1.5">
-                  {a.icon}
-                  <span className="text-[11px] font-mono uppercase tracking-wider">{a.label}</span>
+              <span
+                className="absolute -top-6 -right-6 w-16 h-16 rounded-full blur-2xl opacity-0 group-hover:opacity-60 transition-opacity"
+                style={{ background: a.tint }}
+              />
+              <div className="relative flex items-start justify-between gap-2">
+                <div className="flex flex-col gap-1.5">
+                  <div style={{ color: a.tint }}>{a.icon}</div>
+                  <div className="text-[12px] font-semibold text-ink leading-tight">{a.label}</div>
+                  <div className="text-[10px] text-ink-faint leading-snug">{a.hint}</div>
                 </div>
-                {isLoading ? (
-                  <Loader2 className="w-3 h-3 text-ink-faint animate-spin" />
-                ) : has ? (
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: a.tint }} />
-                ) : null}
+                <div className="shrink-0">
+                  {isLoading ? (
+                    <Loader2 className="w-3 h-3 text-ink-faint animate-spin" />
+                  ) : has ? (
+                    <span
+                      className="w-1.5 h-1.5 rounded-full block"
+                      style={{ background: a.tint, boxShadow: `0 0 8px ${a.tint}` }}
+                    />
+                  ) : null}
+                </div>
               </div>
             </button>
           );

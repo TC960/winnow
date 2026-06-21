@@ -76,12 +76,12 @@ export function ChatPanel() {
           try {
             const j = JSON.parse(payload);
             if (j.delta) update(j.delta);
-            if (j.error) update(`\n[error: ${j.error}]`);
+            if (j.error) update(`\n⚠ ${friendlyError(j.error)}`);
           } catch {}
         }
       }
     } catch (e: any) {
-      update(`\n[error: ${e.message}]`);
+      update(`\n⚠ ${friendlyError(e.message)}`);
     } finally {
       finish();
       sendingRef.current = false;
@@ -124,28 +124,58 @@ export function ChatPanel() {
             </div>
           </div>
         )}
-        {messages.map((m, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-            className={cn(
-              "max-w-[88%] rounded-2xl px-4 py-2.5 text-[14px] leading-relaxed",
-              m.role === "user"
-                ? "ml-auto bg-cyan-accent/15 border border-cyan-accent/30 text-ink"
-                : "mr-auto bg-white/3 border border-white/10 text-ink"
-            )}
-          >
-            {m.content}
-            {m.streaming && (
-              <span className="inline-block w-1.5 h-3.5 ml-1 bg-keep align-middle animate-pulse-glow" />
-            )}
-          </motion.div>
-        ))}
+        {messages.map((m, i) => {
+          const isError = m.role === "assistant" && m.content.trim().startsWith("⚠");
+          return (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className={cn(
+                "max-w-[88%] rounded-2xl px-4 py-2.5 text-[14px] leading-relaxed whitespace-pre-wrap",
+                m.role === "user"
+                  ? "ml-auto bg-cyan-accent/15 border border-cyan-accent/30 text-ink"
+                  : isError
+                    ? "mr-auto bg-raw/10 border border-raw/30 text-raw"
+                    : "mr-auto bg-white/3 border border-white/10 text-ink"
+              )}
+            >
+              {m.content}
+              {m.streaming && (
+                <span className="inline-block w-1.5 h-3.5 ml-1 bg-keep align-middle animate-pulse-glow" />
+              )}
+            </motion.div>
+          );
+        })}
       </div>
 
       {!empty && <VoiceInputBar empty={false} onSend={send} />}
     </section>
   );
+}
+
+// Surface API errors as one-line, human-readable messages instead of dumping
+// raw JSON into the chat bubble. Pulls auth/quota/network signals out of the
+// noisy upstream payloads.
+function friendlyError(raw: string): string {
+  if (!raw) return "Something went wrong.";
+  const lower = raw.toLowerCase();
+  if (lower.includes("invalid x-api-key") || lower.includes("invalid_api_key") || lower.includes("authentication_error"))
+    return "Anthropic key is invalid. Check ANTHROPIC_API_KEY in web/.env and restart the dev server.";
+  if (lower.includes("api_key not set") || lower.includes("anthropic_api_key not set"))
+    return "ANTHROPIC_API_KEY isn't set. Add it to web/.env and restart npm run dev.";
+  if (lower.includes("rate_limit") || lower.includes("rate limit") || lower.includes("429"))
+    return "Anthropic rate limit hit. Wait a few seconds and try again.";
+  if (lower.includes("overloaded") || lower.includes("503"))
+    return "Anthropic is overloaded. Retrying often works.";
+  if (lower.includes("fetch failed") || lower.includes("econnrefused") || lower.includes("network"))
+    return "Couldn't reach the Anthropic API. Check your network.";
+  // Try to surface a clean message field from a JSON error payload.
+  try {
+    const j = JSON.parse(raw.replace(/^[^{]*/, ""));
+    const msg = j?.error?.message || j?.message;
+    if (msg) return msg;
+  } catch {}
+  return raw.length > 160 ? raw.slice(0, 160) + "…" : raw;
 }

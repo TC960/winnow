@@ -47,10 +47,17 @@ const config: Config = {
           from: { opacity: "0", transform: "translateY(6px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        drift: {
+          "0%, 100%": { transform: "translate3d(0%, 0%, 0)" },
+          "33%":      { transform: "translate3d(6%, -4%, 0)" },
+          "66%":      { transform: "translate3d(-4%, 5%, 0)" },
+        },
       },
       animation: {
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "fade-in-up": "fade-in-up 0.35s ease-out",
+        "drift-slow":   "drift 22s ease-in-out infinite",
+        "drift-slower": "drift 32s ease-in-out infinite",
       },
     },
   },

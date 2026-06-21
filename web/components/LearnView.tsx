@@ -24,7 +24,19 @@ export function LearnView() {
   const t = totals(rows);
 
   return (
-    <div className="flex flex-col gap-4 flex-1 min-h-0">
+    <div className="relative flex flex-col gap-4 flex-1 min-h-0">
+      {/* Slow ambient drift so the empty space breathes instead of feeling dead */}
+      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div
+          className="absolute top-[-20%] left-[20%] w-[60%] h-[60%] rounded-full blur-3xl opacity-20 animate-drift-slow"
+          style={{ background: "radial-gradient(circle at center, #36f1a3 0%, transparent 65%)" }}
+        />
+        <div
+          className="absolute bottom-[-15%] right-[10%] w-[55%] h-[55%] rounded-full blur-3xl opacity-15 animate-drift-slower"
+          style={{ background: "radial-gradient(circle at center, #6ee7ff 0%, transparent 65%)" }}
+        />
+      </div>
+
       {/* Project header — editable like a Claude Project */}
       <header className="glass-strong rounded-2xl p-5">
         <div className="flex items-start gap-4">
