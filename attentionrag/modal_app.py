@@ -25,27 +25,9 @@ import modal
 MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
 
 
-def _find_dotenv_dir():
-    """Walk up from this file (and cwd) to find the dir holding a .env."""
-    from pathlib import Path
-
-    candidates = [Path(__file__).resolve()] + list(Path(__file__).resolve().parents)
-    candidates += [Path.cwd()] + list(Path.cwd().parents)
-    for p in candidates:
-        d = p if p.is_dir() else p.parent
-        if (d / ".env").is_file():
-            return str(d)
-    return None
-
-
-# Faithful hint-prefix authoring uses GPT-4o Mini -> ship OPENAI_API_KEY from the
-# repo .env into the container as a Modal secret.
-_dotenv_dir = _find_dotenv_dir()
-openai_secret = (
-    modal.Secret.from_dotenv(path=_dotenv_dir)
-    if _dotenv_dir
-    else modal.Secret.from_dict({})
-)
+# Faithful hint-prefix authoring uses GPT-4o Mini -> ship OPENAI_API_KEY into the
+# container from the Modal-stored `openai-secret` (set up via `modal secret`).
+openai_secret = modal.Secret.from_name("openai-secret")
 
 CACHE_DIR = "/cache"
 # Shared HF cache volume (per memory convention): models download here once if
