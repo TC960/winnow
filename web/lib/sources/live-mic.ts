@@ -13,8 +13,8 @@ const DG_URL = (cfg: SourceConfig) => {
     smart_format: "true",
     interim_results: "true",
     punctuate: "true",
-    endpointing: "300",
-    utterance_end_ms: "1000",
+    endpointing: "60000",
+    utterance_end_ms: "60000",
     vad_events: "true",
     encoding: "opus",
   });
@@ -32,6 +32,11 @@ export class LiveMicSource implements TranscriptSource {
   private stream: MediaStream | null = null;
   private uttCounter = 0;
   private startedAt = 0;
+  // Demo mode: endpointing is cranked very high so a single Start→Stop cycle
+  // produces one utterance. When stop() sends CloseStream, Deepgram flushes
+  // with is_final=true but speech_final=false; this flag tells the handler to
+  // emit that close-flush as a real utterance instead of a dropped partial.
+  private flushing = false;
 
   constructor(private cfg: SourceConfig = {}) {}
 
@@ -97,12 +102,10 @@ export class LiveMicSource implements TranscriptSource {
       if (!text) return;
 
       if (msg.speech_final || msg.is_final) {
-        // Final or speech_final → emit utterance. We only treat speech_final
-        // as "the user paused"; is_final is a partial commit and we coalesce
-        // these into the next utterance event downstream. For simplicity we
-        // emit on speech_final only.
-        if (!msg.speech_final) {
-          // partial final: surface it as a partial, do not fire the pipeline yet
+        // Normally we only emit on speech_final (real pause). During flush
+        // (post-CloseStream) endpointing won't have fired, so we promote the
+        // is_final close-flush into the demo's single utterance.
+        if (!msg.speech_final && !this.flushing) {
           this.emit({ type: "partial", text });
           return;
         }
@@ -137,18 +140,22 @@ export class LiveMicSource implements TranscriptSource {
   }
 
   async stop() {
+    this.flushing = true;
     try { this.recorder?.stop(); } catch {}
     try { this.stream?.getTracks().forEach((t) => t.stop()); } catch {}
     try {
       if (this.ws?.readyState === WebSocket.OPEN) {
         // Tell Deepgram we're done so it flushes any pending final.
         this.ws.send(JSON.stringify({ type: "CloseStream" }));
+        // Give Deepgram a moment to send the flushed final before we close.
+        await new Promise((r) => setTimeout(r, 400));
       }
       this.ws?.close();
     } catch {}
     this.recorder = null;
     this.stream = null;
     this.ws = null;
+    this.flushing = false;
     this.emit({ type: "ended" });
   }
 }

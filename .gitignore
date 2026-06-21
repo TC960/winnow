@@ -1,10 +1,24 @@
+# Python
 /__pycache__
 **/__pycache__/
 *.pyc
-.env
 .venv/
+venv/
+.python-version
+
+# Secrets — never commit
+.env
+.env.local
+.env.*.local
+
 # eval/experiment artifacts (regenerated; not source)
 experiments/eval_results.json
 experiments/eval_outputs*.json
-*.log
+
+# Misc
 .DS_Store
+*.log
+
+# IDE
+.vscode/
+.idea/

@@ -28,6 +28,9 @@ export function ChatPanel() {
   const rows = useStore((s) => s.rows);
   const extras = useStore((s) => s.extraSources);
   const model = useStore((s) => s.model);
+  const rate = useStore((s) => s.rate);
+  const setChatStats = useStore((s) => s.setChatStats);
+  const lastChatStats = useStore((s) => s.lastChatStats);
 
   const sendingRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -57,7 +60,7 @@ export function ChatPanel() {
       const res = await fetch("/api/project-chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ messages: nextHistory, sources, model }),
+        body: JSON.stringify({ messages: nextHistory, sources, model, rate }),
       });
       if (!res.body) throw new Error("no stream");
       const reader = res.body.getReader();
@@ -76,6 +79,7 @@ export function ChatPanel() {
           try {
             const j = JSON.parse(payload);
             if (j.delta) update(j.delta);
+            if (j.meta) setChatStats(j.meta.stats ?? undefined);
             if (j.error) update(`\n⚠ ${friendlyError(j.error)}`);
           } catch {}
         }
@@ -96,6 +100,17 @@ export function ChatPanel() {
         <div className="flex items-center gap-2.5">
           <Sparkles className="w-4 h-4 text-cyan-accent" />
           <h2 className="text-sm font-semibold tracking-wide">VOICE CHAT</h2>
+          {lastChatStats && (
+            <span className="text-[10px] font-mono uppercase tracking-wider text-ink-faint ml-2">
+              ctx {lastChatStats.contextOriginTokens}→{lastChatStats.contextCompressedTokens} tok
+              <span className="neon-text-keep ml-1">
+                ({((1 - lastChatStats.contextCompressedTokens / Math.max(1, lastChatStats.contextOriginTokens)) * 100).toFixed(0)}% saved)
+              </span>
+              <span className="text-ink-faint ml-2">
+                · {lastChatStats.keptDocuments}/{lastChatStats.totalDocuments} src
+              </span>
+            </span>
+          )}
         </div>
         {messages.length > 0 && (
           <button

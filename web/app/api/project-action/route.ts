@@ -2,43 +2,54 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { MODELS, type ModelId } from "@/lib/tokens";
 
-// Structured one-shot actions over the same project sources. Each action has
-// its own tight prompt and expected output shape. Returned JSON gets cached
-// in the store so flipping between insights is instant.
+// Structured one-shot actions over the project sources. Each action runs the
+// same two-stage compressor (BGE reranker + LLMLingua-2) against the sources,
+// using the action's own instruction as the "query" so the reranker biases
+// toward the parts of the transcript most relevant to e.g. "decisions" or
+// "action items". The compressed bundle is then handed to Claude with a
+// schema-locked prompt.
 
 export const runtime = "nodejs";
 
 type Source = { title: string; content: string };
 export type Action = "summary" | "decisions" | "actions" | "flashcards" | "glossary";
 
-const ACTION_PROMPTS: Record<Action, { instruction: string; jsonSchema: string }> = {
+const BACKEND = process.env.COMPRESS_BACKEND_URL ?? "http://localhost:8000";
+
+const ACTION_PROMPTS: Record<Action, { question: string; instruction: string; jsonSchema: string }> = {
   summary: {
+    question: "What is the overall point and what were the main topics covered?",
     instruction: "Write a tight 3-5 sentence summary of the sources. No bullet lists, just prose.",
     jsonSchema: `{ "summary": string }`,
   },
   decisions: {
+    question: "What concrete decisions, resolutions, or sign-offs were made?",
     instruction: "List the concrete DECISIONS that were made (not topics discussed). Each item must be a specific resolution.",
     jsonSchema: `{ "decisions": string[] }`,
   },
   actions: {
+    question: "What action items were assigned, by when, and to whom?",
     instruction: "List the action items. Each item should include WHO is responsible (if mentioned) and a clear next step.",
     jsonSchema: `{ "actions": string[] }`,
   },
   flashcards: {
+    question: "What are the most testable, memorable facts from these sources?",
     instruction: "Generate 5-8 study flashcards covering the key facts a reader should remember. Question + concise answer.",
     jsonSchema: `{ "flashcards": [{ "q": string, "a": string }] }`,
   },
   glossary: {
+    question: "What domain terms, jargon, names, and acronyms appear in the sources?",
     instruction: "Extract domain terms or names mentioned and define each in one sentence using only the sources.",
     jsonSchema: `{ "glossary": [{ "term": string, "definition": string }] }`,
   },
 };
 
 export async function POST(req: NextRequest) {
-  const { action, sources, model } = (await req.json()) as {
+  const { action, sources, model, rate } = (await req.json()) as {
     action: Action;
     sources: Source[];
     model?: ModelId;
+    rate?: number;
   };
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -47,23 +58,62 @@ export async function POST(req: NextRequest) {
   const spec = ACTION_PROMPTS[action];
   if (!spec) return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 });
 
+  const documents = sources
+    .map((s) => `[${s.title}]\n${s.content}`)
+    .filter((s) => s.trim().length > 0);
+
+  // Compress through the backend. Each insight uses its own "question" so the
+  // reranker selects the most relevant chunks for that specific task.
+  let compressedBlock = "";
+  let stats: any = null;
+  let compressError: string | null = null;
+  if (documents.length) {
+    try {
+      const r = await fetch(`${BACKEND}/compress_rag`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          instruction: spec.instruction,
+          question: spec.question,
+          documents,
+          rate: rate ?? 0.5,
+        }),
+      });
+      if (r.ok) {
+        const j = await r.json();
+        compressedBlock = j.compressed_context ?? "";
+        stats = {
+          contextOriginTokens: j.context_origin_tokens,
+          contextCompressedTokens: j.context_compressed_tokens,
+          originTokens: j.origin_tokens,
+          compressedTokens: j.compressed_tokens,
+          rate: j.rate,
+          keptDocuments: j.kept_documents,
+          totalDocuments: j.total_documents,
+          rerankerScores: j.reranker_scores,
+        };
+      } else {
+        compressError = `compress_rag ${r.status}`;
+      }
+    } catch (e: any) {
+      compressError = e.message;
+    }
+  }
+  if (!compressedBlock) compressedBlock = documents.join("\n\n");
+
   const client = new Anthropic({ apiKey });
-  const sourcesBlock = sources.map((s, i) =>
-    `<source index="${i + 1}" title="${escapeXml(s.title)}">\n${s.content}\n</source>`
-  ).join("\n\n");
 
   try {
     const res = await client.messages.create({
       model: modelId,
       max_tokens: 1024,
-      system: [
-        { type: "text", text: "You output ONLY valid JSON matching the schema given. No prose, no code fences." },
-        { type: "text", text: `SOURCES:\n\n${sourcesBlock}`, cache_control: { type: "ephemeral" } },
-      ],
+      system: "You output ONLY valid JSON matching the schema given. No prose, no code fences.",
       messages: [
         {
           role: "user",
-          content: `${spec.instruction}\n\nReturn JSON exactly matching: ${spec.jsonSchema}`,
+          content:
+            `<sources>\n${compressedBlock}\n</sources>\n\n` +
+            `${spec.instruction}\n\nReturn JSON exactly matching: ${spec.jsonSchema}`,
         },
       ],
     });
@@ -76,12 +126,8 @@ export async function POST(req: NextRequest) {
     } catch {
       return NextResponse.json({ error: "model returned non-JSON", raw: text }, { status: 502 });
     }
-    return NextResponse.json({ result: parsed });
+    return NextResponse.json({ result: parsed, stats, compressError });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: e.message, stats, compressError }, { status: 500 });
   }
-}
-
-function escapeXml(s: string) {
-  return s.replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "\"": "&quot;" }[c]!));
 }
