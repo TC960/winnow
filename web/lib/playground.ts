@@ -2,6 +2,7 @@
 // Each dropdown choice maps to the fields the /playground backend expects.
 
 export type CompressionKey =
+  | "none"
   | "llmlingua"
   | "attentionrag"
   | "both-intersection"
@@ -18,19 +19,10 @@ export type LlmKey =
 export type PanelConfig = {
   compression: CompressionKey;
   llm: LlmKey;
-  query: string; // AttentionRAG query — only used/shown when AttentionRAG is selected
 };
 
-// AttentionRAG is involved whenever the panel runs it alone or merged with LLMLingua.
-export function usesAttentionRag(cfg: PanelConfig): boolean {
-  return (
-    cfg.compression === "attentionrag" ||
-    cfg.compression === "both-intersection" ||
-    cfg.compression === "both-union"
-  );
-}
-
 export const COMPRESSION_OPTIONS: { key: CompressionKey; label: string }[] = [
+  { key: "none", label: "No compression (raw)" },
   { key: "llmlingua", label: "LLMLingua-2 + reranker" },
   { key: "attentionrag", label: "AttentionRAG" },
   { key: "both-intersection", label: "Both · intersection" },
@@ -47,6 +39,7 @@ export const LLM_OPTIONS: { key: LlmKey; label: string }[] = [
 ];
 
 const COMPRESSION_MAP: Record<CompressionKey, { methods: string[]; combine: string }> = {
+  none: { methods: [], combine: "intersection" },
   llmlingua: { methods: ["llmlingua"], combine: "intersection" },
   attentionrag: { methods: ["attentionrag"], combine: "intersection" },
   "both-intersection": { methods: ["llmlingua", "attentionrag"], combine: "intersection" },
@@ -67,17 +60,23 @@ export type PlaygroundResult = {
     compressed_text: string;
     methods?: string[];
     combine?: string;
-    n_words?: number;
-    n_kept?: number;
+    origin_words?: number; // HARD compression metric (token reduction)
+    kept_words?: number;
+    hard_ratio?: number;
+    compress_time_s?: number; // omitted by the backend when there's no hard compression
     note?: string | null;
   };
   layer2?: {
     backend: string;
     model?: string;
     text: string;
-    input_tokens?: number;
-    output_tokens?: number;
+    input_tokens?: number; // post-compression token count (as seen by the LLM)
+    output_tokens?: number; // post-generation token count
+    llm_time_s?: number;
     quantized?: boolean;
+    // SOFT-compression metrics (Qwen / LCLM TurboQuant only):
+    eff_bits?: number;
+    kv_compression_x?: number;
   };
   error?: string;
 };
@@ -85,17 +84,16 @@ export type PlaygroundResult = {
 export function buildRequest(text: string, question: string, cfg: PanelConfig) {
   const c = COMPRESSION_MAP[cfg.compression];
   const l = LLM_MAP[cfg.llm];
-  // When AttentionRAG runs, its dedicated per-panel query takes precedence.
-  const q = usesAttentionRag(cfg) && cfg.query.trim() ? cfg.query : question;
   return {
     text,
-    question: q.trim() || null,
+    // The top question feeds the LLM and, server-side, AttentionRAG's focus query.
+    question: question.trim() || null,
     methods: c.methods,
     combine: c.combine,
     rate: 0.7,
     backend: l.backend,
     quantized: l.quantized,
-    max_new_tokens: 256,
+    max_new_tokens: 4096, // effectively uncapped
   };
 }
 

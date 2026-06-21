@@ -55,6 +55,7 @@ Try it (LCLM + TurboQuant route):
 """
 
 import asyncio
+import time
 from contextlib import ExitStack, asynccontextmanager
 from typing import List, Optional
 
@@ -401,7 +402,10 @@ async def generate(req: GenerateRequest):
 class PlaygroundRequest(BaseModel):
     text: str = Field(..., description="The input text to compress + run through an LLM")
     question: Optional[str] = Field(
-        None, description="Optional query — drives AttentionRAG and is asked of the LLM"
+        None, description="Question/instruction asked of the downstream LLM (always applies)"
+    )
+    attn_query: Optional[str] = Field(
+        None, description="AttentionRAG focus query (per-panel); falls back to `question`"
     )
     # ---- Layer 1: context compression --------------------------------------
     methods: List[str] = Field(
@@ -414,7 +418,7 @@ class PlaygroundRequest(BaseModel):
     backend: str = Field("claude", description="'claude' | 'chatgpt' | 'qwen' | 'lclm'")
     model: Optional[str] = Field(None, description="Model id for the black-box backends")
     quantized: bool = Field(True, description="Qwen/LCLM: use the quantized KV cache (4-bit) vs 8-bit")
-    max_new_tokens: int = Field(256, ge=1, le=2048)
+    max_new_tokens: int = Field(4096, ge=1, le=16384, description="Output budget (effectively uncapped)")
     instruction: Optional[str] = Field(None, description="System/instruction for the LLM")
 
 
@@ -430,7 +434,8 @@ async def _layer1(req: PlaygroundRequest) -> dict:
     """Run the selected Layer-1 compressor(s); return compressed text + stats."""
     methods = {m.strip().lower() for m in req.methods}
     use_llm, use_attn = "llmlingua" in methods, "attentionrag" in methods
-    q = (req.question or "").strip()
+    # AttentionRAG uses its dedicated per-panel query, falling back to the LLM question.
+    q = (req.attn_query or req.question or "").strip()
 
     if not use_llm and not use_attn:  # passthrough
         return {"compressed_text": req.text, "methods": [], "note": "no compression"}
@@ -516,8 +521,21 @@ async def playground(req: PlaygroundRequest):
     if req.combine not in ("intersection", "union"):
         raise HTTPException(status_code=422, detail=f"bad combine: {req.combine!r}")
     try:
+        t0 = time.perf_counter()
         layer1 = await _layer1(req)
+        compress_dt = time.perf_counter() - t0
+        # Uniform HARD-compression metric (Layer 1 token reduction), word-based.
+        ow = len(req.text.split())
+        kw = len(layer1["compressed_text"].split())
+        layer1["origin_words"] = ow
+        layer1["kept_words"] = kw
+        layer1["hard_ratio"] = round(ow / max(kw, 1), 2)
+        # Omit the compress timer entirely when there is NO hard compression.
+        if layer1.get("methods"):
+            layer1["compress_time_s"] = round(compress_dt, 3)
+        t1 = time.perf_counter()
         layer2 = await _layer2(req, layer1["compressed_text"])
+        layer2["llm_time_s"] = round(time.perf_counter() - t1, 3)
     except HTTPException:
         raise
     except Exception as exc:

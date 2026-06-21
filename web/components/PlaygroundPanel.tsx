@@ -4,7 +4,6 @@ import { ChevronDown, Layers, Sparkles } from "lucide-react";
 import {
   COMPRESSION_OPTIONS,
   LLM_OPTIONS,
-  usesAttentionRag,
   type PanelConfig,
   type PlaygroundResult,
 } from "@/lib/playground";
@@ -27,8 +26,7 @@ export function PlaygroundPanel({
 }) {
   const l1 = result?.layer1;
   const l2 = result?.layer2;
-  const kept =
-    l1?.n_kept != null && l1?.n_words != null ? `${l1.n_kept}/${l1.n_words} words kept` : null;
+  const hasHard = !!l1?.methods?.length;
 
   return (
     <div className="glass rounded-2xl flex flex-col min-h-[420px] overflow-hidden">
@@ -53,37 +51,49 @@ export function PlaygroundPanel({
         </div>
       </div>
 
-      {/* dedicated AttentionRAG query — only when AttentionRAG is selected */}
-      {usesAttentionRag(cfg) && (
-        <div className="px-4 pt-3">
-          <input
-            value={cfg.query}
-            onChange={(e) => onChange({ ...cfg, query: e.target.value })}
-            placeholder="AttentionRAG query (what to focus on)…"
-            className="w-full bg-black/20 border border-cyan-accent/30 rounded-full px-4 py-2 text-[12px] text-ink placeholder:text-ink-faint focus:outline-none focus:border-cyan-accent/60"
-          />
-        </div>
-      )}
-
       {/* body */}
       <div className="flex-1 flex flex-col gap-3 p-4 overflow-auto">
         {result?.error ? (
           <div className="text-[12px] font-mono text-amber-accent/90">{result.error}</div>
         ) : (
           <>
-            <Section title="compressed context" meta={kept}>
+            {/* side-by-side HARD (Layer 1 token reduction) vs SOFT (Layer 2 LLM) metrics */}
+            {(l1 || l2) && (
+              <div className="grid grid-cols-2 gap-2">
+                <Metric
+                  title="hard · compression"
+                  lines={
+                    hasHard
+                      ? [
+                          `${l1?.origin_words ?? "?"}→${l1?.kept_words ?? "?"} tok · ${l1?.hard_ratio ?? "?"}×`,
+                          l1?.compress_time_s != null ? `${l1.compress_time_s}s` : null,
+                        ]
+                      : ["none (raw)"] // no hard compression -> no compress timer
+                  }
+                />
+                <Metric
+                  title="soft · llm"
+                  lines={[
+                    l2 ? `${l2.input_tokens ?? "?"} in → ${l2.output_tokens ?? "?"} out` : "—",
+                    l2?.kv_compression_x != null
+                      ? `KV ${l2.eff_bits ?? "?"}b · ${l2.kv_compression_x}×`
+                      : l2
+                        ? "black-box (no KV)"
+                        : null,
+                    l2?.llm_time_s != null ? `${l2.llm_time_s}s` : null,
+                  ]}
+                />
+              </div>
+            )}
+
+            <Section title="compressed context" meta={l1?.hard_ratio != null ? `${l1.hard_ratio}×` : null}>
               {loading ? <Skeleton /> : <Mono>{l1?.compressed_text ?? "—"}</Mono>}
               {l1?.note ? (
                 <div className="mt-1 text-[10px] font-mono text-ink-faint">{l1.note}</div>
               ) : null}
             </Section>
 
-            <Section
-              title="llm output"
-              meta={
-                l2?.output_tokens != null ? `${l2.output_tokens} out · ${l2.model ?? l2.backend}` : null
-              }
-            >
+            <Section title="llm output" meta={l2?.model ?? l2?.backend ?? null}>
               {loading ? <Skeleton /> : <div className="text-[13px] text-ink leading-relaxed whitespace-pre-wrap">{l2?.text ?? "—"}</div>}
             </Section>
           </>
@@ -143,6 +153,23 @@ function Section({
       <div className="rounded-xl bg-black/20 border border-white/5 px-3 py-2.5 min-h-[64px]">
         {children}
       </div>
+    </div>
+  );
+}
+
+function Metric({ title, lines }: { title: string; lines: (string | null)[] }) {
+  const shown = lines.filter(Boolean) as string[];
+  return (
+    <div className="rounded-xl bg-black/20 border border-white/5 px-3 py-2">
+      <div className="text-[9px] font-mono uppercase tracking-wider text-ink-faint mb-1">{title}</div>
+      {shown.map((l, i) => (
+        <div
+          key={i}
+          className={`font-mono ${i === 0 ? "text-[12px] text-keep" : "text-[11px] text-ink-dim"}`}
+        >
+          {l}
+        </div>
+      ))}
     </div>
   );
 }
