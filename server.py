@@ -45,6 +45,9 @@ class CompressResponse(BaseModel):
     compressed_tokens: int
     rate: float
     ratio: str
+    # LLMLingua-2 per-word keep/drop labels: list of (word, 1|0). Optional —
+    # populated only when return_labels=True. Powers the strike-through diff UI.
+    word_labels: list | None = None
 
 
 @app.get("/health")
@@ -68,4 +71,5 @@ async def compress(req: CompressRequest):
         compressed_tokens=out["compressed_tokens"],
         rate=out["rate"],
         ratio=out["ratio"],
+        word_labels=out.get("fn_labeled_original_prompt") or out.get("word_labels"),
     )
