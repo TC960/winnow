@@ -3,6 +3,7 @@
 *.pyc
 .env
 .venv/
+/web/.env.local
 # eval/experiment artifacts (regenerated; not source)
 experiments/eval_results.json
 experiments/eval_outputs*.json

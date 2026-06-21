@@ -1,0 +1,31 @@
+stub_mode,seed,question,expected,model_answer,correct,recall_fired,tokens_after
+stub,0,What database password rotation interval did the team agree on?,Every 90 days.,Every 90 days via Vault.,1,1,235
+stub,0,Which city is the Q3 offsite scheduled in?,Lisbon.,Lisbon.,1,1,235
+stub,0,What HTTP error code did the HR wiki legacy SSO return?,HTTP 419.,419,1,1,235
+stub,0,Who owns the new-hire office onboarding checklist?,Priya.,Priya.,1,1,235
+stub,0,What is the Slack alert bot max retry count?,7.,The Slack alert bot max retry count is **7** (with exponential backoff).,1,1,235
+stub,1,What database password rotation interval did the team agree on?,Every 90 days.,Every 90 days via Vault.,1,1,235
+stub,1,Which city is the Q3 offsite scheduled in?,Lisbon.,Lisbon.,1,1,235
+stub,1,What HTTP error code did the HR wiki legacy SSO return?,HTTP 419.,419,1,1,235
+stub,1,Who owns the new-hire office onboarding checklist?,Priya.,Priya.,1,1,235
+stub,1,What is the Slack alert bot max retry count?,7.,7,1,1,235
+stub,2,What database password rotation interval did the team agree on?,Every 90 days.,Every 90 days via Vault.,1,1,235
+stub,2,Which city is the Q3 offsite scheduled in?,Lisbon.,Lisbon.,1,1,235
+stub,2,What HTTP error code did the HR wiki legacy SSO return?,HTTP 419.,419,1,1,235
+stub,2,Who owns the new-hire office onboarding checklist?,Priya.,Priya.,1,1,235
+stub,2,What is the Slack alert bot max retry count?,7.,The Slack alert bot max retry count is **7** (with exponential backoff).,1,1,235
+erase,0,What database password rotation interval did the team agree on?,Every 90 days.,Not in context.,0,0,165
+erase,0,Which city is the Q3 offsite scheduled in?,Lisbon.,Not in context.,0,0,165
+erase,0,What HTTP error code did the HR wiki legacy SSO return?,HTTP 419.,Not in context.,0,0,165
+erase,0,Who owns the new-hire office onboarding checklist?,Priya.,Not in context.,0,0,165
+erase,0,What is the Slack alert bot max retry count?,7.,Not in context.,0,0,165
+erase,1,What database password rotation interval did the team agree on?,Every 90 days.,Not in context.,0,0,165
+erase,1,Which city is the Q3 offsite scheduled in?,Lisbon.,Not in context.,0,0,165
+erase,1,What HTTP error code did the HR wiki legacy SSO return?,HTTP 419.,Not in context.,0,0,165
+erase,1,Who owns the new-hire office onboarding checklist?,Priya.,Not in context.,0,0,165
+erase,1,What is the Slack alert bot max retry count?,7.,Not in context.,0,0,165
+erase,2,What database password rotation interval did the team agree on?,Every 90 days.,Not in context.,0,0,165
+erase,2,Which city is the Q3 offsite scheduled in?,Lisbon.,Not in context.,0,0,165
+erase,2,What HTTP error code did the HR wiki legacy SSO return?,HTTP 419.,Not in context.,0,0,165
+erase,2,Who owns the new-hire office onboarding checklist?,Priya.,Not in context.,0,0,165
+erase,2,What is the Slack alert bot max retry count?,7.,Not in context.,0,0,165

@@ -1,0 +1,3 @@
+stub_mode,n_questions,n_correct,recall_accuracy,tokens_after
+stub,15,15,1.0,235.0
+erase,15,0,0.0,165.0

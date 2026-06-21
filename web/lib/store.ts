@@ -82,6 +82,9 @@ type State = {
   traceActions: Record<string, TraceAction>;        // turn index -> action, last pass
   tracePackedUpTo: number;                          // history length at last pass (0 = never)
   traceStats?: TraceStats;
+  traceCompactText?: string;                        // compact context from last pass (verify)
+  traceRawText?: string;                            // full raw history at last pass (verify)
+  traceGoal?: string;                               // the question that drove the last pass
 
   // setters
   setRate: (r: number) => void;
@@ -114,7 +117,7 @@ type State = {
   setInsightLoading: (k: keyof Insights, b: boolean) => void;
 
   setTraceBudget: (n: number) => void;
-  setTracePack: (p: { actions: Record<string, TraceAction>; packedUpTo: number; stats: TraceStats }) => void;
+  setTracePack: (p: { actions: Record<string, TraceAction>; packedUpTo: number; stats: TraceStats; compactText?: string; rawText?: string; goal?: string }) => void;
   resetTrace: () => void;
 };
 
@@ -205,15 +208,16 @@ export const useStore = create<State>()((set, get) => ({
       const last = st.chatMessages[st.chatMessages.length - 1];
       return { chatMessages: [...st.chatMessages.slice(0, -1), { ...last, streaming: false }] };
     }),
-  resetChat: () => set({ chatMessages: [], traceActions: {}, tracePackedUpTo: 0, traceStats: undefined }),
+  resetChat: () => set({ chatMessages: [], traceActions: {}, tracePackedUpTo: 0, traceStats: undefined, traceCompactText: undefined, traceRawText: undefined, traceGoal: undefined }),
   setInsight: (k, v) => set((st) => ({ insights: { ...st.insights, [k]: v } })),
   setInsightLoading: (k, b) =>
     set((st) => ({ insightLoading: { ...st.insightLoading, [k]: b } })),
 
   setTraceBudget: (traceBudget) => set({ traceBudget }),
-  setTracePack: ({ actions, packedUpTo, stats }) =>
-    set({ traceActions: actions, tracePackedUpTo: packedUpTo, traceStats: stats }),
-  resetTrace: () => set({ traceActions: {}, tracePackedUpTo: 0, traceStats: undefined }),
+  setTracePack: ({ actions, packedUpTo, stats, compactText, rawText, goal }) =>
+    set({ traceActions: actions, tracePackedUpTo: packedUpTo, traceStats: stats,
+          traceCompactText: compactText, traceRawText: rawText, traceGoal: goal }),
+  resetTrace: () => set({ traceActions: {}, tracePackedUpTo: 0, traceStats: undefined, traceCompactText: undefined, traceRawText: undefined, traceGoal: undefined }),
 }));
 
 // Derived selectors live as plain functions so we never re-render unnecessarily.

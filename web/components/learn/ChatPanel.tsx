@@ -9,6 +9,7 @@ import { cn } from "@/lib/cn";
 import { estimateTokens, TRACE_TRIGGER_TOKENS } from "@/lib/tokens";
 import { VoiceInputBar } from "./VoiceInputBar";
 import { TraceBar, ACTION_DOT } from "./TraceBar";
+import { VerifyPanel } from "./VerifyPanel";
 
 // Voice-first project chat. Speak naturally — each pause auto-sends as a
 // chat message. Anthropic streams the answer back token-by-token. Sources
@@ -103,10 +104,17 @@ export function ChatPanel() {
           const pack = await pr.json();
           if (Array.isArray(pack.compact_messages) && pack.compact_messages.length) {
             messagesToSend = pack.compact_messages;
+            // Stash both contexts so the verify action can ask Claude the same
+            // question twice (full vs compact) and show the answers side by side.
+            const compactText = pack.compact_messages.map((m: { content: string }) => m.content).join("\n\n");
+            const rawText = rawHistory.map((m) => `${m.role}: ${m.content}`).join("\n\n");
             setTracePack({
               actions: (pack.actions ?? {}) as Record<string, TraceAction>,
               packedUpTo: rawHistory.length,
               stats: pack.stats,
+              compactText,
+              rawText,
+              goal: q,
             });
           }
         }
@@ -173,6 +181,7 @@ export function ChatPanel() {
       </header>
 
       <TraceBar />
+      <VerifyPanel />
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto scroll-soft px-5 py-4 space-y-4">
         {empty && (
