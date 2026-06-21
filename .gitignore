@@ -1,1 +1,10 @@
 /__pycache__
+**/__pycache__/
+*.pyc
+.env
+.venv/
+# eval/experiment artifacts (regenerated; not source)
+experiments/eval_results.json
+experiments/eval_outputs*.json
+*.log
+.DS_Store

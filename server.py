@@ -12,10 +12,21 @@ Run:
     uvicorn server:app --reload --port 8000
 
 Try it:
+    # plain token-level compression of one blob of text:
     curl -X POST http://localhost:8000/compress \
         -H "Content-Type: application/json" \
         -d '{"text": "your long text here ...", "rate": 0.5}'
+
+    # two-stage, question-aware RAG compression of a list of documents:
+    curl -X POST http://localhost:8000/compress_rag \
+        -H "Content-Type: application/json" \
+        -d '{"instruction": "Answer using only the context.",
+             "question": "What is there to see in Paris?",
+             "documents": ["doc one ...", "doc two ...", "doc three ..."],
+             "rate": 0.5, "top_k": 3}'
 """
+
+from typing import List, Optional
 
 import modal
 from fastapi import FastAPI, HTTPException
@@ -50,6 +61,18 @@ class CompressResponse(BaseModel):
     word_labels: list | None = None
 
 
+class RagRequest(BaseModel):
+    instruction: str = Field("", description="System/task instruction (kept verbatim)")
+    question: str = Field(..., description="User query (drives ranking, kept verbatim)")
+    documents: List[str] = Field(..., description="Retrieved chunks, one per element")
+    rate: float = Field(0.5, gt=0, le=1, description="Fine-stage fraction of tokens to keep")
+    target_token: int = Field(-1, description="Hard token budget for the context (-1 = use rate)")
+    top_k: Optional[int] = Field(None, description="Max documents to keep in the coarse stage")
+    score_threshold: Optional[float] = Field(
+        None, description="Min reranker score [0,1] to keep a document"
+    )
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}
@@ -73,3 +96,26 @@ async def compress(req: CompressRequest):
         ratio=out["ratio"],
         word_labels=out.get("fn_labeled_original_prompt") or out.get("word_labels"),
     )
+
+
+@app.post("/compress_rag")
+async def compress_rag(req: RagRequest):
+    """Two-stage, question-aware compression: reranker coarse + LLMLingua-2 tokens.
+
+    Returns the assembled prompt plus token counts and coarse-stage diagnostics
+    (the dict from two_stage_compressor.two_stage_compress).
+    """
+    try:
+        out = await compressor.compress_rag.remote.aio(
+            req.instruction,
+            req.question,
+            req.documents,
+            rate=req.rate,
+            target_token=req.target_token,
+            top_k=req.top_k,
+            score_threshold=req.score_threshold,
+        )
+    except Exception as exc:  # surface Modal errors as a clean 502
+        raise HTTPException(status_code=502, detail=f"Modal call failed: {exc}")
+
+    return out
