@@ -1,0 +1,12 @@
+# winnow backend + Trace mode (Stage 1)
+# Embeddings: sentence-transformers all-MiniLM-L6-v2, local, CPU, batched.
+sentence-transformers==3.0.1
+torch==2.2.2
+numpy==1.26.4
+
+# LLMLingua-2 Modal worker + FastAPI proxy (existing backend)
+modal==0.64.0
+llmlingua==0.2.2
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+pydantic==2.7.4
