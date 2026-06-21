@@ -30,6 +30,9 @@ export function InsightsPanel() {
   const rows = useStore((s) => s.rows);
   const extras = useStore((s) => s.extraSources);
   const model = useStore((s) => s.model);
+  const rate = useStore((s) => s.rate);
+  const setInsightStats = useStore((s) => s.setInsightStats);
+  const insightStats = useStore((s) => s.lastInsightStats);
 
   async function generate(id: ActionId) {
     setOpen(id);
@@ -43,10 +46,11 @@ export function InsightsPanel() {
       const res = await fetch("/api/project-action", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ action: id, sources, model }),
+        body: JSON.stringify({ action: id, sources, model, rate }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "action failed");
+      setInsightStats(id, data.stats ?? undefined);
       const r = data.result;
       if (id === "summary")    setInsight("summary",    r.summary);
       if (id === "decisions")  setInsight("decisions",  r.decisions);
@@ -130,9 +134,18 @@ export function InsightsPanel() {
               transition={{ duration: 0.2 }}
               className="rounded-xl border border-white/10 bg-white/3 p-4 space-y-3"
             >
-              <div className="flex items-center justify-between">
-                <div className="text-[10px] font-mono uppercase tracking-wider text-ink-faint">
-                  {ACTIONS.find((a) => a.id === open)?.label}
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[10px] font-mono uppercase tracking-wider text-ink-faint flex items-center gap-2">
+                  <span>{ACTIONS.find((a) => a.id === open)?.label}</span>
+                  {insightStats[open] && (
+                    <span className="text-ink-faint normal-case tracking-normal">
+                      · ctx {insightStats[open]!.contextOriginTokens}→
+                      {insightStats[open]!.contextCompressedTokens} tok
+                      <span className="neon-text-keep ml-1">
+                        ({((1 - insightStats[open]!.contextCompressedTokens / Math.max(1, insightStats[open]!.contextOriginTokens)) * 100).toFixed(0)}% saved)
+                      </span>
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={() => generate(open)}
