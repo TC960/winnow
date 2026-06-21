@@ -33,6 +33,21 @@ export function fmtPct(n: number) {
   return `${(n * 100).toFixed(1)}%`;
 }
 
+// Cheap client-side token estimate (~4 chars/token) for the trace-pass trigger
+// and the per-message token badges. The authoritative counts come from the
+// backend packer; this just decides when to fire a pass and what to label rows.
+export function estimateTokens(text: string): number {
+  if (!text) return 0;
+  return Math.max(1, Math.ceil(text.trim().length / 4));
+}
+
+// Trace mode (turn-level packer) demo scaling. Real Claude windows are ~200k
+// tokens, which a hand-typed Learn-tab session never reaches, so a pass would
+// never be observable. We scale the effective window down so a normal chat
+// crosses the 50% trigger and the packer visibly fires. Bump for production.
+export const TRACE_WINDOW_TOKENS = 1500;
+export const TRACE_TRIGGER_TOKENS = Math.round(TRACE_WINDOW_TOKENS * 0.5); // ~50% of window
+
 // Naive but consistent filler stripper used for the optional prefilter step.
 const FILLERS = new Set([
   "uh","um","er","erm","ah","mm","mhm","like","you","know","i","mean",

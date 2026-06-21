@@ -26,6 +26,19 @@ export type Row = {
 
 export type SourceKind = "live" | "recorded";
 
+// Trace mode: the per-turn action assigned by the backend packer. A gradient,
+// never a hole: tombstone is the floor, erase only for must_purge content.
+export type TraceAction = "keep" | "summarize" | "tombstone" | "erase";
+export type TraceStats = {
+  before_tokens: number;
+  after_tokens: number;
+  saved_pct: number;
+  n_keep: number;
+  n_summarize: number;
+  n_tombstone: number;
+  n_erase: number;
+};
+
 // Learn (Claude-Projects-style) workspace state. Lives alongside the Compare
 // state so switching tabs is instant and nothing is recomputed.
 export type ExtraSource = { id: string; title: string; content: string };
@@ -63,6 +76,13 @@ type State = {
   insights: Insights;
   insightLoading: Partial<Record<keyof Insights, boolean>>;
 
+  // Trace-tab state (turn-level pack over the chat history)
+  traceSessionId: string;
+  traceBudget: number;                              // pack token budget (slider)
+  traceActions: Record<string, TraceAction>;        // turn index -> action, last pass
+  tracePackedUpTo: number;                          // history length at last pass (0 = never)
+  traceStats?: TraceStats;
+
   // setters
   setRate: (r: number) => void;
   setModel: (m: ModelId) => void;
@@ -92,7 +112,15 @@ type State = {
   resetChat: () => void;
   setInsight: <K extends keyof Insights>(k: K, v: Insights[K]) => void;
   setInsightLoading: (k: keyof Insights, b: boolean) => void;
+
+  setTraceBudget: (n: number) => void;
+  setTracePack: (p: { actions: Record<string, TraceAction>; packedUpTo: number; stats: TraceStats }) => void;
+  resetTrace: () => void;
 };
+
+// One trace session per page load. ingest / pack / recall share this id so they
+// hit the same content-hash keyed Store on the backend.
+const TRACE_SESSION_ID = `sess-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 export const useStore = create<State>()((set, get) => ({
   rows: [],
@@ -115,6 +143,12 @@ export const useStore = create<State>()((set, get) => ({
   chatMessages: [],
   insights: {},
   insightLoading: {},
+
+  traceSessionId: TRACE_SESSION_ID,
+  traceBudget: 500,
+  traceActions: {},
+  tracePackedUpTo: 0,
+  traceStats: undefined,
 
   setRate: (rate) => set({ rate }),
   setModel: (model) => set({ model }),
@@ -171,10 +205,15 @@ export const useStore = create<State>()((set, get) => ({
       const last = st.chatMessages[st.chatMessages.length - 1];
       return { chatMessages: [...st.chatMessages.slice(0, -1), { ...last, streaming: false }] };
     }),
-  resetChat: () => set({ chatMessages: [] }),
+  resetChat: () => set({ chatMessages: [], traceActions: {}, tracePackedUpTo: 0, traceStats: undefined }),
   setInsight: (k, v) => set((st) => ({ insights: { ...st.insights, [k]: v } })),
   setInsightLoading: (k, b) =>
     set((st) => ({ insightLoading: { ...st.insightLoading, [k]: b } })),
+
+  setTraceBudget: (traceBudget) => set({ traceBudget }),
+  setTracePack: ({ actions, packedUpTo, stats }) =>
+    set({ traceActions: actions, tracePackedUpTo: packedUpTo, traceStats: stats }),
+  resetTrace: () => set({ traceActions: {}, tracePackedUpTo: 0, traceStats: undefined }),
 }));
 
 // Derived selectors live as plain functions so we never re-render unnecessarily.
