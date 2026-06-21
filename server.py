@@ -30,7 +30,12 @@ from typing import List, Optional
 
 import modal
 from fastapi import FastAPI, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
+
+from trace import Action, OurPolicy
+from trace.core import Turn, count_tokens, render_history
+from trace.strategies import rehydrate
 
 # Must match the app/class names in llmlingua2_modal.py.
 MODAL_APP_NAME = "llmlingua2-xlm"
@@ -119,3 +124,180 @@ async def compress_rag(req: RagRequest):
         raise HTTPException(status_code=502, detail=f"Modal call failed: {exc}")
 
     return out
+
+
+# ---------------------------------------------------------------------------
+# Trace mode: turn-level context compression on top of the per-utterance path.
+#
+# The trace engine lives in the trace/ module (packer, MiniLM embedder, Modal
+# SUMMARIZE tier, the OurPolicy strategy). These endpoints are a thin session
+# layer over it. One OurPolicy per session_id holds that session's content-hash
+# keyed Store, so observe() (ingest) and recall() share the same cache that
+# compress() (pack) populates.
+# ---------------------------------------------------------------------------
+
+# Per-session policies. In-memory for now (see trace_spec.md: persistence and
+# eviction are out of scope). The Store inside each policy is the session cache.
+_sessions: dict[str, OurPolicy] = {}
+
+
+def _get_policy(session_id: str, stub_mode: str = "stub") -> OurPolicy:
+    """Lazily create one OurPolicy per session. Construction is cheap: the MiniLM
+    model loads lazily on the first embed call, not here."""
+    pol = _sessions.get(session_id)
+    if pol is None or pol.stub_mode != stub_mode:
+        pol = OurPolicy(stub_mode=stub_mode)
+        _sessions[session_id] = pol
+    return pol
+
+
+class IngestTurn(BaseModel):
+    index: int
+    type: str
+    content: str
+    tokens: int | None = Field(None, description="Verbatim cost; estimated if omitted")
+    summary: str | None = None
+    must_purge: bool = Field(False, description="Secrets/PII: force ERASE, never cached")
+
+
+class IngestRequest(BaseModel):
+    session_id: str
+    turn: IngestTurn
+
+
+@app.post("/trace/ingest")
+async def trace_ingest(req: IngestRequest):
+    """Observe a new turn: cache its embedding off the critical path. Returns fast."""
+    pol = _get_policy(req.session_id)
+    t = req.turn
+    turn = Turn(
+        index=t.index,
+        type=t.type,
+        content=t.content,
+        tokens=t.tokens if t.tokens is not None else count_tokens(t.content),
+        summary=t.summary,
+        must_purge=t.must_purge,
+    )
+    # observe() embeds locally (blocking CPU work), so keep it off the event loop.
+    await run_in_threadpool(pol.observe, turn)
+    return {
+        "ok": True,
+        "cached": not t.must_purge,  # must_purge turns are never registered
+        "has_summary": t.summary is not None,
+    }
+
+
+class PackTurn(BaseModel):
+    index: int
+    type: str
+    content: str
+    tokens: int | None = None
+    summary: str | None = None
+    summary_tokens: int = 0
+    score: float = 0.0
+    must_purge: bool = False
+
+
+class PackRequest(BaseModel):
+    session_id: str
+    goal: str
+    turns: list[PackTurn]
+    budget: int = 1200
+    summary_rate: float = 0.35
+    keep_threshold: float = 0.85
+    summary_threshold: float = 0.20
+    keep_last_k: int = 4
+    stub_mode: str = "stub"
+
+
+@app.post("/trace/pack")
+async def trace_pack(req: PackRequest):
+    """Run the packer over the history and return the compact context plus stats."""
+    pol = _get_policy(req.session_id, stub_mode=req.stub_mode)
+    # Per-pass knobs (the aggressiveness slider varies these between passes).
+    pol.keep_threshold = req.keep_threshold
+    pol.summary_threshold = req.summary_threshold
+    pol.summary_rate = req.summary_rate
+
+    all_turns = [
+        Turn(
+            index=t.index,
+            type=t.type,
+            content=t.content,
+            tokens=t.tokens if t.tokens is not None else count_tokens(t.content),
+            summary=t.summary,
+            summary_tokens=t.summary_tokens,
+            score=t.score,
+            must_purge=t.must_purge,
+        )
+        for t in req.turns
+    ]
+
+    # Stage 2 partition: the most recent keep_last_k turns are the protected
+    # keep-zone (rendered verbatim, never packed); the rest are candidates.
+    # must_purge turns are never eligible for the keep-zone: the keep-zone renders
+    # verbatim and would leak the secret, so they always fall to the packer, which
+    # ERASEs them (zero bytes, no cache entry).
+    ordered = sorted(all_turns, key=lambda x: x.index)
+    k = max(0, req.keep_last_k)
+    keepable = [t for t in ordered if not t.must_purge]
+    keep_zone = keepable[len(keepable) - k:] if k else []
+    keep_idx = {t.index for t in keep_zone}
+    candidates = [t for t in ordered if t.index not in keep_idx]
+
+    try:
+        # compress() scores, packs, runs the stage-5 SUMMARIZE reconstruct (which
+        # may call the Modal worker), and applies the erase ablation.
+        annotated = await run_in_threadpool(pol.compress, candidates, req.goal, req.budget)
+    except Exception as exc:  # surface a Modal/summarize failure as a clean 502
+        raise HTTPException(status_code=502, detail=f"Trace pack failed: {exc}")
+
+    plan = pol.last_plan
+    text, after = render_history(keep_zone, annotated, plan)
+
+    before = sum(t.tokens for t in all_turns)
+    counts = {a: 0 for a in (Action.KEEP, Action.SUMMARIZE, Action.TOMBSTONE, Action.ERASE)}
+    for t in annotated:
+        if t.action in counts:
+            counts[t.action] += 1
+
+    return {
+        "compact_messages": [{"role": "user", "content": text}],
+        "actions": {str(t.index): t.action.value for t in annotated if t.action},
+        "folds": [[t.index for t in grp] for grp in plan.folds],
+        "stats": {
+            "before_tokens": before,
+            "after_tokens": after,
+            "saved_pct": round(100 * (before - after) / before, 1) if before else 0.0,
+            "n_keep": counts[Action.KEEP],
+            "n_summarize": counts[Action.SUMMARIZE],
+            "n_tombstone": counts[Action.TOMBSTONE],
+            "n_erase": counts[Action.ERASE],
+        },
+    }
+
+
+class RecallRequest(BaseModel):
+    session_id: str
+    query: str
+
+
+@app.post("/trace/recall")
+async def trace_recall(req: RecallRequest):
+    """Cosine the query against this session's cached tombstone embeddings."""
+    pol = _sessions.get(req.session_id)
+    if pol is None:
+        return {"hits": []}
+    hits = await run_in_threadpool(pol.recall, req.query)
+    return {
+        "hits": [
+            {
+                "index": h.record.index,
+                "type": h.record.turn_type,
+                "similarity": round(h.similarity, 3),
+                "action": h.record.action.value,
+                "rehydrated": rehydrate(h),
+            }
+            for h in hits
+        ]
+    }

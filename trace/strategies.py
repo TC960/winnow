@@ -193,6 +193,9 @@ class OurPolicy:
             keep_threshold=self.keep_threshold,
             summary_threshold=self.summary_threshold,
         )
+        # Stash the plan so callers (the /trace/pack endpoint) can read back the
+        # real folds / floor_overflow instead of reconstructing them from actions.
+        self.last_plan = plan
 
         # pack assigns must_purge (ERASE) turns only in plan.actions, not on the
         # Turn (they are held out of the work set). Reconcile so t.action is
