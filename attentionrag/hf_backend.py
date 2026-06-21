@@ -243,6 +243,15 @@ class HFBackend:
         kept_spans = []  # (orig_start, orig_end)
         anchors = []
         n_chunks = 0
+        n_kept_chunks = 0
+        # When the whole input fits in a single chunk, a "none" anchor would
+        # otherwise drop the entire text from AttentionRAG (there is no second
+        # chunk to fall back on, and a "none" anchor carries no attention signal
+        # to rank sentences). In that single-chunk case keep the chunk wholesale
+        # instead of dropping it, so the downstream merge still has spans to work
+        # with. Multi-chunk inputs keep the normal per-chunk "none" drop — that
+        # coarse relevance gate is the point of AttentionRAG on long contexts.
+        single_chunk = len(ids) <= chunk_size
         for i in range(0, len(ids), chunk_size):
             j = min(i + chunk_size, len(ids))
             char_start = offs[i][0]
@@ -253,6 +262,11 @@ class HFBackend:
             focus = self.focus_attention(chunk_text, question, eff_prefix)
             anchors.append(focus.anchor)
             if _is_none_anchor(focus.anchor):
+                if single_chunk:
+                    # Keep every sentence of the only chunk rather than dropping it.
+                    for s, e, _t in split_sentence_spans(chunk_text):
+                        kept_spans.append((char_start + s, char_start + e))
+                    n_kept_chunks += 1
                 continue
 
             _kept_text, kept_idx = select_sentences(
@@ -262,6 +276,7 @@ class HFBackend:
             for k in kept_idx:
                 s, e, _t = spans[k]
                 kept_spans.append((char_start + s, char_start + e))
+            n_kept_chunks += 1
 
         return {
             "hint_prefix": raw_prefix.strip(),
@@ -269,5 +284,5 @@ class HFBackend:
             "kept_spans": kept_spans,  # exact char-spans in the ORIGINAL text
             "anchors": anchors,
             "n_chunks": n_chunks,
-            "n_kept_chunks": sum(1 for a in anchors if not _is_none_anchor(a)),
+            "n_kept_chunks": n_kept_chunks,
         }

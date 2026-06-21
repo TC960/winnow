@@ -303,7 +303,13 @@ async def compress(req: CompressRequest):
         hint, kept_chunks = None, "0/0 (attnrag failed)"
     else:
         kept_spans = attn_out.get("kept_spans", [])
-        attn_empty = attn_out.get("is_empty_prefix", False)
+        # A "none" hint prefix normally makes us fall back to LLMLingua-only. But
+        # for a single-chunk (short, <= chunk_size) input, compress_spans keeps
+        # the whole chunk, so we honor those spans instead of discarding them on
+        # a none hint. Genuine emptiness (no kept_spans) still falls back, via
+        # merge_compress's `not kept_spans` guard.
+        single_chunk = attn_out.get("n_chunks", 0) == 1
+        attn_empty = attn_out.get("is_empty_prefix", False) and not single_chunk
         hint = attn_out.get("hint_prefix")
         kept_chunks = f"{attn_out.get('n_kept_chunks', 0)}/{attn_out.get('n_chunks', 0)}"
 
