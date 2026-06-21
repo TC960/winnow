@@ -43,6 +43,13 @@ app = FastAPI(title="LLMLingua-2 Compression API")
 Compressor = modal.Cls.from_name(MODAL_APP_NAME, MODAL_CLASS_NAME)
 compressor = Compressor()
 
+# TurboQuant generation worker (Qwen2.5-14B on an A100-80GB). Looked up the same
+# way as the compressor; Modal routes /generate calls to the warm GPU container.
+TURBOQUANT_APP_NAME = "turboquant-qwen14b"
+TURBOQUANT_CLASS_NAME = "TurboQuantModel"
+TurboQuantModel = modal.Cls.from_name(TURBOQUANT_APP_NAME, TURBOQUANT_CLASS_NAME)
+turboquant = TurboQuantModel()
+
 
 class CompressRequest(BaseModel):
     text: str = Field(..., description="Text to compress")
@@ -119,3 +126,59 @@ async def compress_rag(req: RagRequest):
         raise HTTPException(status_code=502, detail=f"Modal call failed: {exc}")
 
     return out
+
+
+class GenerateRequest(BaseModel):
+    prompt: str = Field(..., description="User prompt to generate from")
+    bit_width: int = Field(4, ge=2, le=8, description="TurboQuant bits per KV value")
+    max_new_tokens: int = Field(256, ge=1, le=2048, description="Max tokens to generate")
+    outlier_channels: int = Field(
+        0, ge=0, description="Per-head channels kept at higher precision (0 = off)"
+    )
+    outlier_bits: int = Field(
+        0, ge=0, description="Bits for outlier channels (must exceed bit_width to take effect)"
+    )
+
+
+class GenerateResponse(BaseModel):
+    model: str
+    text: str
+    input_tokens: int
+    output_tokens: int
+    gen_time_s: float
+    tokens_per_s: float
+    eff_bits: float
+    kv_bytes: int
+    fp16_kv_bytes: int
+    kv_compression_x: Optional[float] = None
+
+
+@app.post("/generate", response_model=GenerateResponse)
+async def generate(req: GenerateRequest):
+    """Generate text with a TurboQuant-compressed KV cache on the warm A100
+    worker. The model is already loaded in the container (see turboquant_modal.py
+    @modal.enter), so there is no model-startup cost on this request path."""
+    try:
+        out = await turboquant.generate.remote.aio(
+            req.prompt,
+            bit_width=req.bit_width,
+            max_new_tokens=req.max_new_tokens,
+            outlier_channels=req.outlier_channels,
+            outlier_bits=req.outlier_bits,
+        )
+    except Exception as exc:  # surface Modal errors as a clean 502
+        raise HTTPException(status_code=502, detail=f"Modal call failed: {exc}")
+    return GenerateResponse(**out)
+
+
+@app.on_event("startup")
+async def _warm_turboquant():
+    """Boot the A100 worker when the server starts so the 14B is loaded before
+    the first /generate. spawn() enqueues a tiny warm-up without blocking server
+    startup; the container loads the model in the background and stays warm
+    (scaledown_window in turboquant_modal.py). Result: no cold start on /generate."""
+    try:
+        turboquant.generate.spawn("warmup", max_new_tokens=1)
+        print("[startup] TurboQuant warm-up dispatched to Modal A100 worker.")
+    except Exception as exc:  # don't block server startup if Modal is unreachable
+        print(f"[startup] TurboQuant warm-up skipped: {exc}")
