@@ -8,11 +8,11 @@ import { startPipeline, stopPipeline } from "@/lib/pipeline";
 // Demo Director mode: keyboard shortcuts so you can drive the entire demo
 // without touching the trackpad. Hit ? to see the cheat sheet.
 //
-//   Space  — start/stop the active source
-//   R      — swap live ⇄ recorded (and start it)
-//   1 2 3  — fire preset Q&A probes
-//   X      — clear session
-//   ?      — toggle this overlay
+//   Space  - start/stop the active source
+//   R      - swap live ⇄ recorded (and start it)
+//   1 2 3  - fire preset Q&A probes
+//   X      - clear session
+//   ?      - toggle this overlay
 
 const SHORTCUTS: { keys: string; action: string }[] = [
   { keys: "Space", action: "start / stop" },

@@ -74,7 +74,7 @@ export function PlaygroundPanel({
                 <Metric
                   title="soft · llm"
                   lines={[
-                    l2 ? `${l2.input_tokens ?? "?"} in → ${l2.output_tokens ?? "?"} out` : "—",
+                    l2 ? `${l2.input_tokens ?? "?"} in → ${l2.output_tokens ?? "?"} out` : "-",
                     l2?.kv_compression_x != null
                       ? `KV ${l2.eff_bits ?? "?"}b · ${l2.kv_compression_x}×`
                       : l2
@@ -87,14 +87,14 @@ export function PlaygroundPanel({
             )}
 
             <Section title="compressed context" meta={l1?.hard_ratio != null ? `${l1.hard_ratio}×` : null}>
-              {loading ? <Skeleton /> : <Mono>{l1?.compressed_text ?? "—"}</Mono>}
+              {loading ? <Skeleton /> : <Mono>{l1?.compressed_text ?? "-"}</Mono>}
               {l1?.note ? (
                 <div className="mt-1 text-[10px] font-mono text-ink-faint">{l1.note}</div>
               ) : null}
             </Section>
 
             <Section title="llm output" meta={l2?.model ?? l2?.backend ?? null}>
-              {loading ? <Skeleton /> : <div className="text-[13px] text-ink leading-relaxed whitespace-pre-wrap">{l2?.text ?? "—"}</div>}
+              {loading ? <Skeleton /> : <div className="text-[13px] text-ink leading-relaxed whitespace-pre-wrap">{l2?.text ?? "-"}</div>}
             </Section>
           </>
         )}

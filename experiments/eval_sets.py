@@ -1,14 +1,14 @@
 """
 Two-task eval set for (LLMLingua-2 + reranker) with/without sentence dedup.
 
-TASK A — "ramble": a sparse, low-density spoken monologue. Few unique facts
+TASK A - "ramble": a sparse, low-density spoken monologue. Few unique facts
 spread thin among filler and repeated meaning. This is the realistic voice-
 transcript case. Hypothesis: semantic dedup safely removes the redundant filler
 restatements without touching the sparse facts (the regime where dedup helps).
 
-TASK B — "multidoc": several medium-density documents (8 passages, incl. 2
-distractors). A broad query. The reranker has a real job here — drop the
-distractors and surface the content docs — and dedup can collapse cross/intra-
+TASK B - "multidoc": several medium-density documents (8 passages, incl. 2
+distractors). A broad query. The reranker has a real job here - drop the
+distractors and surface the content docs - and dedup can collapse cross/intra-
 doc redundancy. This is the multi-document regime, not a dense single doc.
 
 Each task carries comprehension QA with gold aliases for deterministic scoring.
@@ -16,7 +16,7 @@ Each task carries comprehension QA with gold aliases for deterministic scoring.
 """
 
 # =====================================================================
-# TASK A — sparse spoken ramble (single doc)
+# TASK A - sparse spoken ramble (single doc)
 # =====================================================================
 RAMBLE_INTENT = "Understand the key facts about the speaker's planned camping trip."
 RAMBLE_INSTRUCTION = (
@@ -46,7 +46,7 @@ RAMBLE_QA = [
 ]
 
 # =====================================================================
-# TASK B — multi-doc, medium density (8 passages; docs 6 & 7 are distractors)
+# TASK B - multi-doc, medium density (8 passages; docs 6 & 7 are distractors)
 # =====================================================================
 MULTIDOC_INTENT = (
     "Answer questions about the Nimbus weather-data company: its product, "
@@ -55,7 +55,7 @@ MULTIDOC_INTENT = (
 MULTIDOC_INSTRUCTION = RAMBLE_INSTRUCTION
 
 MULTIDOC_DOCS = [
-    # 0 — Product overview
+    # 0 - Product overview
     "Nimbus Product Overview. Nimbus is a weather-data API company that provides "
     "developers with programmatic access to forecasts, historical climate records, "
     "and severe-weather alerts. The company was founded in 2021 and is headquartered "
@@ -67,7 +67,7 @@ MULTIDOC_DOCS = [
     "data. The company's stated mission is to make trustworthy weather data accessible "
     "to any developer with a few lines of code.",
 
-    # 1 — Pricing & plans
+    # 1 - Pricing & plans
     "Nimbus Pricing and Plans. Nimbus offers three tiers. The Free tier includes up to "
     "1,000 API calls per day at no cost and is intended for prototyping and small "
     "personal projects. The Pro plan costs $49 per month and raises the limit "
@@ -78,7 +78,7 @@ MULTIDOC_DOCS = [
     "additional call. Annual billing is available and gives a discount equivalent to "
     "two months free compared to paying monthly.",
 
-    # 2 — Architecture
+    # 2 - Architecture
     "Nimbus Architecture Notes. The Nimbus platform ingests raw observations from three "
     "independent satellite providers and blends them with ground-station readings to "
     "produce its forecasts. The data pipeline refreshes every 15 minutes, so customers "
@@ -89,7 +89,7 @@ MULTIDOC_DOCS = [
     "observations. All traffic is served through a global content-delivery network to "
     "minimize latency for international customers.",
 
-    # 3 — Incident report
+    # 3 - Incident report
     "Nimbus Incident Report: March 3, 2024. On March 3, 2024, Nimbus experienced a "
     "partial outage that lasted 47 minutes, during which roughly a third of forecast "
     "requests returned errors. The root cause was traced to a bug in the Redis failover "
@@ -100,7 +100,7 @@ MULTIDOC_DOCS = [
     "tests and improved alerting so the same failure mode is caught before reaching "
     "production again.",
 
-    # 4 — API reference
+    # 4 - API reference
     "Nimbus API Reference. The Nimbus REST API exposes three primary endpoints: "
     "/forecast returns upcoming conditions, /historical returns past observations, and "
     "/alerts returns active severe-weather warnings for a location. Every request must "
@@ -110,7 +110,7 @@ MULTIDOC_DOCS = [
     "Responses are returned as JSON, and all timestamps are in UTC. Pagination is "
     "supported on the /historical endpoint via a cursor parameter.",
 
-    # 5 — HR / onboarding
+    # 5 - HR / onboarding
     "Nimbus Onboarding Handbook. Welcome to Nimbus. The company is remote-first, with "
     "team members spread across several time zones. The daily engineering standup is "
     "held at 10:00 AM Mountain Time over video. New employees receive 20 days of paid "
@@ -120,7 +120,7 @@ MULTIDOC_DOCS = [
     "a small change to production within their first two weeks as part of getting "
     "familiar with the deployment process.",
 
-    # 6 — DISTRACTOR: general weather blog (no Nimbus facts)
+    # 6 - DISTRACTOR: general weather blog (no Nimbus facts)
     "Understanding Seasonal Weather Patterns. Weather varies enormously across seasons, "
     "and understanding the broad drivers can help anyone plan ahead. In many temperate "
     "regions, spring brings increased rainfall as warming air holds more moisture, while "
@@ -131,7 +131,7 @@ MULTIDOC_DOCS = [
     "watching cloud types and wind shifts can offer surprisingly good short-term hints "
     "about incoming changes in the weather.",
 
-    # 7 — DISTRACTOR: competitor landscape (no Nimbus gold facts)
+    # 7 - DISTRACTOR: competitor landscape (no Nimbus gold facts)
     "The Weather-API Competitive Landscape. The market for weather data has grown "
     "crowded over the past decade. Several large incumbents offer broad global coverage "
     "bundled with mapping products, while a number of smaller startups compete on "

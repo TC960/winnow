@@ -5,7 +5,7 @@ import type { SourceConfig, TranscriptSource } from "./sources/types";
 import { useStore } from "./store";
 
 // One pipeline at a time. Swapping kind tears down the old source and brings up
-// the new one against the SAME store + SAME compression call — that's the whole
+// the new one against the SAME store + SAME compression call - that's the whole
 // point of the swappable interface.
 
 let active: TranscriptSource | null = null;

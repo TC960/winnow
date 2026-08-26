@@ -100,7 +100,7 @@ def reconstruct_word_spans(
     cursor (LLMLingua tokenization quirk: NFC/NFD mismatch, BPE detokenization
     rejoining, glued punctuation, sentinel tokens, etc.), it gets a zero-width
     sentinel span ``(cursor, cursor)`` and the cursor stays put. We deliberately
-    do NOT fall back to a global ``find()`` — that can return an index BEFORE
+    do NOT fall back to a global ``find()`` - that can return an index BEFORE
     the cursor, rewinding it and producing a cascade of overlapping spans for
     every subsequent word. The zero-width sentinel preserves index-alignment
     with the input labels (so the strike-through UI and downstream masks stay
@@ -108,7 +108,7 @@ def reconstruct_word_spans(
     text for any kept-but-unlocated entry, so content is not lost.
 
     The actual rate of zero-width sentinels in production is exposed via
-    ``merge_compress(...)["n_unlocated_words"]`` — see that field, and the
+    ``merge_compress(...)["n_unlocated_words"]`` - see that field, and the
     measurement script in ``tools/measure_rewind_rate.py``, before assuming
     this path is cold.
     """
@@ -157,9 +157,9 @@ def splice_kept(
 ) -> str:
     """Reconstruct the compressed text from the kept canonical words.
 
-    Each kept word contributes ONLY its own token — the exact original substring
+    Each kept word contributes ONLY its own token - the exact original substring
     when its located span is valid & forward, else the canonical word text for
-    unlocated entries (zero-width sentinel spans) — joined by a single space.
+    unlocated entries (zero-width sentinel spans) - joined by a single space.
     We deliberately do NOT re-slice arbitrary ``original[prev_end:s]`` gaps:
     even with monotonic spans, gap-fill re-inserts dropped tokens between kept
     runs, which blew union output up many-fold under the old behavior. Joining

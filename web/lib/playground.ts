@@ -97,8 +97,8 @@ export function buildRequest(text: string, question: string, cfg: PanelConfig) {
   };
 }
 
-// FastAPI errors come back two ways: a plain string `detail`, or — for 422
-// validation failures — an ARRAY of {type, loc, msg, ...} objects. Rendering
+// FastAPI errors come back two ways: a plain string `detail`, or - for 422
+// validation failures - an ARRAY of {type, loc, msg, ...} objects. Rendering
 // that array directly crashes React ("Objects are not valid as a React child"),
 // so always collapse it to a readable string here.
 function formatError(data: any, status: number): string {
@@ -125,7 +125,7 @@ function wordCount(s?: string): number {
 // The backend's layer1 shape differs per compression path: LLMLingua emits
 // origin_tokens/compressed_tokens, while the passthrough path emits neither.
 // The panel reads a single unified set (origin_words/kept_words/hard_ratio),
-// so normalize here — preferring the backend's own counts, falling back to
+// so normalize here - preferring the backend's own counts, falling back to
 // word counts of the in/out text.
 function normalizeLayer1(l1: any, originalText: string) {
   if (!l1) return l1;

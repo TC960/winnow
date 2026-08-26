@@ -21,7 +21,7 @@ import sys
 import modal
 
 # This eval lives in experiments/ but imports two_stage_compressor.py from the
-# repo root — put the root on the path so it resolves from either location.
+# repo root - put the root on the path so it resolves from either location.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 MODEL_NAME = "microsoft/llmlingua-2-xlm-roberta-large-meetingbank"
@@ -73,7 +73,7 @@ class Compressor:
         from llmlingua import PromptCompressor
         from two_stage_compressor import CrossEncoderReranker, SmallEmbedder
 
-        # Encoder token classifier (LLMLingua-2). No causal/SLM backbone — the
+        # Encoder token classifier (LLMLingua-2). No causal/SLM backbone - the
         # LongLLMLingua path was cancelled (wrong regime for short single docs).
         self.compressor = PromptCompressor(
             model_name=MODEL_NAME, use_llmlingua2=True, device_map="cuda",

@@ -1,7 +1,7 @@
 "use client";
 
 // Tiny inline sparkline. Used to show per-utterance compression ratio over
-// time — a flat line proves compression is consistent, not flaky.
+// time - a flat line proves compression is consistent, not flaky.
 
 export function Sparkline({
   data,
@@ -15,7 +15,7 @@ export function Sparkline({
   color?: string;
 }) {
   if (data.length < 2) {
-    return <div style={{ width, height }} className="text-[10px] text-ink-faint">—</div>;
+    return <div style={{ width, height }} className="text-[10px] text-ink-faint">-</div>;
   }
   const min = Math.min(...data);
   const max = Math.max(...data);

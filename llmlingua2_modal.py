@@ -17,12 +17,12 @@ import modal
 # Token-level extractive compressor (encoder). Multilingual XLM-RoBERTa.
 MODEL_NAME = "microsoft/llmlingua-2-xlm-roberta-large-meetingbank"
 # Coarse-stage, question-aware reranker (cross-encoder, NOT a causal LM).
-# bge-reranker-v2-m3: current lightweight multilingual BGE reranker — pairs well
+# bge-reranker-v2-m3: current lightweight multilingual BGE reranker - pairs well
 # with the multilingual compressor above. See two_stage_compressor.py for why.
 RERANKER_NAME = "BAAI/bge-reranker-v2-m3"
 
 # Persistent HF cache. Weights are downloaded into this volume once and read
-# from it on every subsequent run — never re-downloaded, even across image
+# from it on every subsequent run - never re-downloaded, even across image
 # rebuilds. create_if_missing=True means the first run provisions it automatically.
 CACHE_DIR = "/cache"
 hf_cache_vol = modal.Volume.from_name("llmlingua2-hf-cache", create_if_missing=True)
@@ -50,7 +50,7 @@ app = modal.App("llmlingua2-xlm", image=image)
     volumes={CACHE_DIR: hf_cache_vol},
     # Keep a warmed container alive 30 min after the last request so it stays hot
     # through a demo (between questions) without re-warming. Auto-scales to zero
-    # afterward — no lingering cost.
+    # afterward - no lingering cost.
     scaledown_window=1800,
     # Memory snapshots: capture the fully-loaded model (incl. GPU memory) so that
     # future cold starts RESTORE that state instead of re-loading the model.
@@ -60,7 +60,7 @@ app = modal.App("llmlingua2-xlm", image=image)
 class Compressor:
     @modal.enter(snap=True)
     def load(self):
-        # Runs only when CREATING the snapshot — i.e. the very first cold start,
+        # Runs only when CREATING the snapshot - i.e. the very first cold start,
         # or after a code/image change invalidates the existing snapshot. The
         # loaded model and its GPU memory are captured here; every later cold
         # start restores this state directly and skips all of this work.

@@ -5,11 +5,11 @@ import type { SourceConfig, SourceListener, TranscriptSource, Utterance, Word } 
 // Common WebSocket close codes Deepgram emits, mapped to actionable hints.
 function dgCloseReason(code: number): string | null {
   switch (code) {
-    case 1002: return "protocol error (audio format mismatch — likely sending containers when raw encoding was asserted)";
+    case 1002: return "protocol error (audio format mismatch - likely sending containers when raw encoding was asserted)";
     case 1003: return "unsupported data (Deepgram couldn't decode the audio)";
     case 1008: return "policy violation (likely auth: API key invalid, expired, or missing scope)";
     case 1011: return "Deepgram internal error";
-    case 4000: return "bad request (URL params rejected — check model/language/encoding)";
+    case 4000: return "bad request (URL params rejected - check model/language/encoding)";
     case 4001: return "unauthorized (API key invalid or missing)";
     case 4008: return "payment required (Deepgram credits exhausted)";
     case 4029: return "rate limited";
@@ -107,11 +107,11 @@ export class LiveMicSource implements TranscriptSource {
           ev.data.arrayBuffer().then((buf) => this.ws?.send(buf));
         }
       };
-      this.recorder.start(250); // 250ms chunks — low enough latency, doesn't spam
+      this.recorder.start(250); // 250ms chunks - low enough latency, doesn't spam
     };
 
     this.ws.onmessage = (ev) => this.handleMessage(ev.data);
-    // The browser WS API doesn't expose error details — the close event right
+    // The browser WS API doesn't expose error details - the close event right
     // after onerror does (code + reason). Surface both so we can actually debug.
     let erroredAt = 0;
     this.ws.onerror = () => { erroredAt = Date.now(); };
@@ -140,7 +140,7 @@ export class LiveMicSource implements TranscriptSource {
       const text = (alt.transcript ?? "").trim();
 
       if (msg.is_final) {
-        // A finalized segment — append it to the running take. We do NOT emit a
+        // A finalized segment - append it to the running take. We do NOT emit a
         // utterance here; the whole take is emitted once, on stop().
         if (text) {
           const words: Word[] = (alt.words ?? []).map((w: any) => ({
@@ -158,7 +158,7 @@ export class LiveMicSource implements TranscriptSource {
         // Show the full accumulated transcript so far.
         this.emit({ type: "partial", text: this.finalSegments.join(" ") });
       } else if (text) {
-        // Interim hypothesis — show accumulated text + the live guess.
+        // Interim hypothesis - show accumulated text + the live guess.
         const live = [this.finalSegments.join(" "), text].filter(Boolean).join(" ");
         this.emit({ type: "partial", text: live });
       }

@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Winnow — Tech Stack</title>
+<title>Winnow - Tech Stack</title>
 
 <!-- ===========================================================
-     FONTS (Fontshare — never system fonts)
+     FONTS (Fontshare - never system fonts)
      Cabinet Grotesk = display · General Sans = body · Tabular = mono labels
      =========================================================== -->
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
@@ -14,7 +14,7 @@
 
 <style>
 /* ===========================================================
-   THEME — minimalist "paper & ink" with one burnt-ochre accent.
+   THEME - minimalist "paper & ink" with one burnt-ochre accent.
    Change everything from these variables.
    =========================================================== */
 :root {
@@ -23,7 +23,7 @@
     --ink:        #17150E;   /* near-black text                    */
     --ink-soft:   #5C574A;   /* muted secondary text               */
     --hair:       #CFC7B5;   /* hairline rules                     */
-    --accent:     #C0531E;   /* burnt ochre — the single accent    */
+    --accent:     #C0531E;   /* burnt ochre - the single accent    */
     --accent-2:   #9A7B33;   /* muted gold, used sparingly         */
 
     --stage-bg:   #d8d2c4;   /* letterbox color around the stage   */
@@ -40,7 +40,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 /* ===========================================================
-   FIXED 16:9 STAGE — mandatory base (viewport-base.css, verbatim)
+   FIXED 16:9 STAGE - mandatory base (viewport-base.css, verbatim)
    =========================================================== */
 html, body {
     width: 100%; height: 100%; margin: 0;
@@ -96,7 +96,7 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
 }
 .pad { position: absolute; inset: 0; padding: 96px 120px; display: flex; flex-direction: column; }
 
-/* Mono kicker label (e.g. "01 — TOKEN-SPACE") */
+/* Mono kicker label (e.g. "01 - TOKEN-SPACE") */
 .kicker {
     font-family: var(--font-mono);
     font-size: 22px; letter-spacing: 0.28em; text-transform: uppercase;
@@ -121,7 +121,7 @@ h2.title {
 .foot .brand { color: var(--ink); font-weight: 500; }
 
 /* ===========================================================
-   REVEAL ANIMATION (restrained — fits the minimal aesthetic)
+   REVEAL ANIMATION (restrained - fits the minimal aesthetic)
    =========================================================== */
 .reveal { opacity: 0; transform: translateY(26px); transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); }
 .slide.visible .reveal { opacity: 1; transform: translateY(0); }
@@ -212,7 +212,7 @@ h2.title {
 .arch-step p { font-size: 24px; color: var(--ink-soft); line-height: 1.45; margin-top: 6px; }
 
 /* ===========================================================
-   LEG SLIDES — pairing layout  (A × B  →  result)
+   LEG SLIDES - pairing layout  (A × B  →  result)
    =========================================================== */
 .leg { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 70px; margin-top: 44px; flex: 1; }
 .leg-left { display: flex; flex-direction: column; }
@@ -259,7 +259,7 @@ table.bench tr.win td.arm { color: var(--accent); }
 .take p { font-size: 21px; color: var(--ink-soft); line-height: 1.4; margin-top: 8px; }
 
 /* ===========================================================
-   DECK CHROME — progress + edit hotzone
+   DECK CHROME - progress + edit hotzone
    =========================================================== */
 .deck-counter {
     position: fixed; right: 30px; top: 24px; z-index: 1000;
@@ -293,7 +293,7 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
             <div class="grain" style="left:1420px; top:250px; animation-delay:.1s;"></div>
             <div class="grain" style="left:1480px; top:330px; background:var(--accent-2); animation-delay:.2s;"></div>
             <h1 class="wordmark reveal r1" contenteditable="false">Winnow<span class="dot">.</span></h1>
-            <p class="title-sub reveal r2" contenteditable="false">Voice-first, real-time token compression for LLM pipelines.<br/>Speak — we transcribe, prune, and pipe. Losing words, keeping meaning.</p>
+            <p class="title-sub reveal r2" contenteditable="false">Voice-first, real-time token compression for LLM pipelines.<br/>Speak - we transcribe, prune, and pipe. Losing words, keeping meaning.</p>
             <div class="title-meta reveal r3">
                 <span>TOKEN-SPACE × MODEL-SPACE</span>
                 <span>MODAL · FASTAPI · NEXT.JS</span>
@@ -307,7 +307,7 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
         <div class="pad">
             <div class="kicker reveal r1">Live</div>
             <h2 class="demo-word reveal r1">Demo<span class="dot">.</span></h2>
-            <p class="title-sub reveal r2" style="font-size:36px;">Speak — watch the transcript compress in real time, then ask the same question against the raw and pruned text side by side.</p>
+            <p class="title-sub reveal r2" style="font-size:36px;">Speak - watch the transcript compress in real time, then ask the same question against the raw and pruned text side by side.</p>
         </div>
         <div class="foot"><span class="brand">WINNOW</span><span>Live demo</span></div>
     </section>
@@ -364,13 +364,13 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
             <h2 class="title reveal r1">Compress along two<br/>orthogonal axes.</h2>
             <div class="axes">
                 <div class="axis a reveal r2">
-                    <div class="tag">Axis 1 — Token-space</div>
+                    <div class="tag">Axis 1 - Token-space</div>
                     <h3>Which words<br/>survive.</h3>
                     <p>Prune the prompt <em>before</em> the model ever sees it. The same text fans out to several compressors in parallel; their keep-decisions are merged token-by-token.</p>
                     <div class="who">LLMLingua-2 · LongLLMLingua · AttentionRAG</div>
                 </div>
                 <div class="axis b reveal r3">
-                    <div class="tag">Axis 2 — Model-space</div>
+                    <div class="tag">Axis 2 - Model-space</div>
                     <h3>How it's<br/>answered.</h3>
                     <p>Shrink sequence length and KV-cache bit-width <em>inside</em> the model. Route the compressed prompt to a black-box API or to our self-hosted GPU workers.</p>
                     <div class="who">Claude / GPT · Qwen + TurboQuant · LCLM + TurboQuant</div>
@@ -396,11 +396,11 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
                     </div>
                     <div class="arch-step reveal r4">
                         <div class="n">02</div>
-                        <div><h4>Merge</h4><p>Keep-masks are aligned to one canonical token sequence and merged under a boolean rule — intersection or union.</p></div>
+                        <div><h4>Merge</h4><p>Keep-masks are aligned to one canonical token sequence and merged under a boolean rule - intersection or union.</p></div>
                     </div>
                     <div class="arch-step reveal r5">
                         <div class="n">03</div>
-                        <div><h4>Route</h4><p>The compressed prompt goes to a black-box API, Qwen + TurboQuant, or LCLM + TurboQuant — the user picks.</p></div>
+                        <div><h4>Route</h4><p>The compressed prompt goes to a black-box API, Qwen + TurboQuant, or LCLM + TurboQuant - the user picks.</p></div>
                     </div>
                 </div>
             </div>
@@ -411,11 +411,11 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
     <!-- ===== 04 · LEG: LLMLingua-2 × LongLLMLingua ========= -->
     <section class="slide">
         <div class="pad">
-            <div class="kicker reveal r1">01 — Token-space</div>
+            <div class="kicker reveal r1">01 - Token-space</div>
             <div class="leg">
                 <div class="leg-left">
                     <h2 class="title reveal r1" style="font-size:78px;">Extractive pruning,<br/>made query-aware.</h2>
-                    <p class="lede reveal r2">LLMLingua-2 is a fast extractive token classifier — it labels every token keep / drop in a single forward pass. We pair it with LongLLMLingua's query-aware arm so pruning respects the question being asked.</p>
+                    <p class="lede reveal r2">LLMLingua-2 is a fast extractive token classifier - it labels every token keep / drop in a single forward pass. We pair it with LongLLMLingua's query-aware arm so pruning respects the question being asked.</p>
                     <div class="pair reveal r3">
                         <div class="chip"><span class="role">Backbone</span><span class="name">LLMLingua-2</span></div>
                         <div class="times">×</div>
@@ -426,7 +426,7 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
                     <div class="result-label">How they pair</div>
                     <div class="spec-item"><h4>Coarse → fine</h4><p>A <code>BGE</code> cross-encoder reranker does coarse, question-aware selection; LLMLingua-2 then does fine, token-level keep/drop.</p></div>
                     <div class="spec-item"><h4>Perplexity focus</h4><p>A "focal blank" template runs next-token prediction to weight tokens the question actually depends on.</p></div>
-                    <div class="spec-item"><h4>Output</h4><p>A single per-token keep-mask over the original text — ready to merge.</p></div>
+                    <div class="spec-item"><h4>Output</h4><p>A single per-token keep-mask over the original text - ready to merge.</p></div>
                 </div>
             </div>
         </div>
@@ -436,11 +436,11 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
     <!-- ===== 05 · LEG: AttentionRAG × Merge =============== -->
     <section class="slide">
         <div class="pad">
-            <div class="kicker reveal r1">02 — Token-space</div>
+            <div class="kicker reveal r1">02 - Token-space</div>
             <div class="leg">
                 <div class="leg-left">
                     <h2 class="title reveal r1" style="font-size:78px;">A second opinion,<br/>merged token-by-token.</h2>
-                    <p class="lede reveal r2">AttentionRAG prunes whole sentences by attention to the query — a different failure mode than perplexity. We don't pick a winner: we merge both methods' decisions over one canonical token sequence.</p>
+                    <p class="lede reveal r2">AttentionRAG prunes whole sentences by attention to the query - a different failure mode than perplexity. We don't pick a winner: we merge both methods' decisions over one canonical token sequence.</p>
                     <div class="pair reveal r3">
                         <div class="chip"><span class="role">Attention-guided</span><span class="name">AttentionRAG</span></div>
                         <div class="times">×</div>
@@ -449,8 +449,8 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
                 </div>
                 <div class="spec reveal r4">
                     <div class="result-label">How they pair</div>
-                    <div class="spec-item"><h4>Intersection — aggressive</h4><p>Keep a token only if <em>both</em> methods kept it. Up to <code>3.74×</code> compression for tolerant tasks.</p></div>
-                    <div class="spec-item"><h4>Union — recall-safe</h4><p>Keep if <em>either</em> kept it. The default when buried details must survive.</p></div>
+                    <div class="spec-item"><h4>Intersection - aggressive</h4><p>Keep a token only if <em>both</em> methods kept it. Up to <code>3.74×</code> compression for tolerant tasks.</p></div>
+                    <div class="spec-item"><h4>Union - recall-safe</h4><p>Keep if <em>either</em> kept it. The default when buried details must survive.</p></div>
                     <div class="spec-item"><h4>Graceful fallback</h4><p>If AttentionRAG gates everything out, the merge falls back to LLMLingua-only.</p></div>
                 </div>
             </div>
@@ -461,11 +461,11 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
     <!-- ===== 06 · LEG: Qwen × TurboQuant ================= -->
     <section class="slide">
         <div class="pad">
-            <div class="kicker reveal r1">03 — Model-space</div>
+            <div class="kicker reveal r1">03 - Model-space</div>
             <div class="leg">
                 <div class="leg-left">
                     <h2 class="title reveal r1" style="font-size:78px;">Self-hosted Qwen,<br/>a quantized KV cache.</h2>
-                    <p class="lede reveal r2">Route the compressed prompt to our own Qwen worker, generating with a TurboQuant-compressed KV cache — a data-free, random-rotation <code>DynamicCache</code> subclass that drops in with no retraining.</p>
+                    <p class="lede reveal r2">Route the compressed prompt to our own Qwen worker, generating with a TurboQuant-compressed KV cache - a data-free, random-rotation <code>DynamicCache</code> subclass that drops in with no retraining.</p>
                     <div class="pair reveal r3">
                         <div class="chip"><span class="role">Decoder</span><span class="name">Qwen</span></div>
                         <div class="times">×</div>
@@ -474,9 +474,9 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
                 </div>
                 <div class="spec reveal r4">
                     <div class="result-label">How they pair</div>
-                    <div class="spec-item"><h4>Drop-in cache</h4><p>TurboQuant subclasses HF <code>DynamicCache</code>, so it slots into any model's <code>past_key_values</code> — no kernel surgery.</p></div>
+                    <div class="spec-item"><h4>Drop-in cache</h4><p>TurboQuant subclasses HF <code>DynamicCache</code>, so it slots into any model's <code>past_key_values</code> - no kernel surgery.</p></div>
                     <div class="spec-item"><h4>~4-bit KV</h4><p>Online vector quantization with near-optimal distortion: <code>3–4×</code> smaller KV at ~4.0 effective bits.</p></div>
-                    <div class="spec-item"><h4>Output-matching</h4><p>Validated end-to-end against the FP16 baseline — savings without the accuracy tax.</p></div>
+                    <div class="spec-item"><h4>Output-matching</h4><p>Validated end-to-end against the FP16 baseline - savings without the accuracy tax.</p></div>
                 </div>
             </div>
         </div>
@@ -486,11 +486,11 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
     <!-- ===== 07 · LEG: LCLM × TurboQuant ================= -->
     <section class="slide">
         <div class="pad">
-            <div class="kicker reveal r1">04 — Model-space</div>
+            <div class="kicker reveal r1">04 - Model-space</div>
             <div class="leg">
                 <div class="leg-left">
                     <h2 class="title reveal r1" style="font-size:78px;">Two compressions,<br/>stacked in one cache.</h2>
-                    <p class="lede reveal r2">LCLM compresses the long context into latent soft tokens — shrinking the KV cache's <em>sequence length</em>. TurboQuant then quantizes that same cache's <em>bit-width</em>. The savings multiply.</p>
+                    <p class="lede reveal r2">LCLM compresses the long context into latent soft tokens - shrinking the KV cache's <em>sequence length</em>. TurboQuant then quantizes that same cache's <em>bit-width</em>. The savings multiply.</p>
                     <div class="pair reveal r3">
                         <div class="chip"><span class="role">Seq-length compression</span><span class="name">LCLM</span></div>
                         <div class="times">×</div>
@@ -500,8 +500,8 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
                 <div class="spec reveal r4">
                     <div class="result-label">How they pair</div>
                     <div class="spec-item"><h4>Orthogonal axes</h4><p>LCLM's decoder is a standard Qwen3 GQA stack; TurboQuant drops in as its decoder <code>past_key_values</code>.</p></div>
-                    <div class="spec-item"><h4>The hard part</h4><p>LCLM feeds the decoder <code>inputs_embeds</code> (soft tokens), not token ids — getting low-bit quant to compose cleanly was the key integration.</p></div>
-                    <div class="spec-item"><h4>Result</h4><p><code>15.97×</code> sequence compression × <code>3.78×</code> KV — compounding.</p></div>
+                    <div class="spec-item"><h4>The hard part</h4><p>LCLM feeds the decoder <code>inputs_embeds</code> (soft tokens), not token ids - getting low-bit quant to compose cleanly was the key integration.</p></div>
+                    <div class="spec-item"><h4>Result</h4><p><code>15.97×</code> sequence compression × <code>3.78×</code> KV - compounding.</p></div>
                 </div>
             </div>
         </div>
@@ -511,11 +511,11 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
     <!-- ===== 08 · LEG: Serving =========================== -->
     <section class="slide">
         <div class="pad">
-            <div class="kicker reveal r1">05 — Serving</div>
+            <div class="kicker reveal r1">05 - Serving</div>
             <div class="leg">
                 <div class="leg-left">
                     <h2 class="title reveal r1" style="font-size:78px;">Warm GPUs,<br/>one lifecycle.</h2>
-                    <p class="lede reveal r2">Every compressor and generator runs as a warm Modal A100 worker, tied to a FastAPI server's lifecycle — models load once at startup, so real requests pay no cold-start. A static ngrok domain gives the frontend a URL it can set once.</p>
+                    <p class="lede reveal r2">Every compressor and generator runs as a warm Modal A100 worker, tied to a FastAPI server's lifecycle - models load once at startup, so real requests pay no cold-start. A static ngrok domain gives the frontend a URL it can set once.</p>
                     <div class="pair reveal r3">
                         <div class="chip"><span class="role">GPU workers</span><span class="name">Modal A100</span></div>
                         <div class="times">×</div>
@@ -524,7 +524,7 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
                 </div>
                 <div class="spec reveal r4">
                     <div class="result-label">How they pair</div>
-                    <div class="spec-item"><h4>Lifespan-bound</h4><p>FastAPI's lifespan starts each Modal app on boot and tears the GPUs down on shutdown — no idle lingering.</p></div>
+                    <div class="spec-item"><h4>Lifespan-bound</h4><p>FastAPI's lifespan starts each Modal app on boot and tears the GPUs down on shutdown - no idle lingering.</p></div>
                     <div class="spec-item"><h4>Flag-routed</h4><p><code>/compress</code> picks LLMLingua vs. LLMLingua+AttentionRAG by <code>question</code>; <code>/generate</code> routes on an <code>lclm</code> flag.</p></div>
                     <div class="spec-item"><h4>Stable URL</h4><p>A fixed ngrok domain survives backend restarts, so the frontend config never changes.</p></div>
                 </div>
@@ -536,7 +536,7 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
     <!-- ===== 09 · LEG: Frontend ========================== -->
     <section class="slide">
         <div class="pad">
-            <div class="kicker reveal r1">06 — Experience</div>
+            <div class="kicker reveal r1">06 - Experience</div>
             <div class="leg">
                 <div class="leg-left">
                     <h2 class="title reveal r1" style="font-size:78px;">Speak, and watch<br/>it compress.</h2>
@@ -550,8 +550,8 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
                 <div class="spec reveal r4">
                     <div class="result-label">How they pair</div>
                     <div class="spec-item"><h4>Pause = send</h4><p>Each natural pause auto-sends an utterance; the compressed prompt streams to Claude and the answer streams back.</p></div>
-                    <div class="spec-item"><h4>Prompt caching</h4><p>Anthropic prompt caching keeps the compressed context warm across turns — multi-turn cost stays low.</p></div>
-                    <div class="spec-item"><h4>Swappable source</h4><p>Live mic and a recorded fixture implement one interface — a stage-safe fallback that downstream code can't tell apart.</p></div>
+                    <div class="spec-item"><h4>Prompt caching</h4><p>Anthropic prompt caching keeps the compressed context warm across turns - multi-turn cost stays low.</p></div>
+                    <div class="spec-item"><h4>Swappable source</h4><p>Live mic and a recorded fixture implement one interface - a stage-safe fallback that downstream code can't tell apart.</p></div>
                 </div>
             </div>
         </div>
@@ -598,7 +598,7 @@ body.editing [contenteditable]:focus { outline: 2px solid var(--accent); outline
 
 <script>
 /* ===========================================================
-   SLIDE CONTROLLER — fixed 16:9 stage scaling + navigation
+   SLIDE CONTROLLER - fixed 16:9 stage scaling + navigation
    =========================================================== */
 class SlidePresentation {
     constructor() {
@@ -669,7 +669,7 @@ const deck = new SlidePresentation();
 window.deck = deck;
 
 /* ===========================================================
-   INLINE EDITING — hover hotzone (JS, 400ms grace) + E key
+   INLINE EDITING - hover hotzone (JS, 400ms grace) + E key
    =========================================================== */
 const editor = {
     isActive: false,

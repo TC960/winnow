@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 // Return a Deepgram token the browser can use for WebSocket subprotocol auth.
 // Preferred path: mint a short-lived token via /v1/auth/grant. That requires
-// the project API key to have admin scope. Fallback: return the raw API key —
+// the project API key to have admin scope. Fallback: return the raw API key -
 // fine for a hackathon demo where everything is local; do NOT ship to prod.
 
 export async function POST() {

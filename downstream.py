@@ -1,9 +1,9 @@
 """
-Downstream LLM endpoint — provider-agnostic completion behind one HTTP API.
+Downstream LLM endpoint - provider-agnostic completion behind one HTTP API.
 
 This is the final hop of the pipeline: (Deepgram -> compressor ->) DOWNSTREAM LLM.
-It lets the frontend pick the provider per request — Claude (Anthropic) or
-ChatGPT (OpenAI) — by sending a `provider` field. The compressed prompt is just
+It lets the frontend pick the provider per request - Claude (Anthropic) or
+ChatGPT (OpenAI) - by sending a `provider` field. The compressed prompt is just
 text, so it works with either black-box API.
 
 Endpoints
@@ -68,7 +68,7 @@ def _key_for(provider: str) -> Optional[str]:
         key = os.environ.get("OPENAI_API_KEY")
     else:
         return None
-    # Strip whitespace/newlines — a trailing "\n" in the key produces an illegal
+    # Strip whitespace/newlines - a trailing "\n" in the key produces an illegal
     # Authorization header that surfaces (misleadingly) as a connection error.
     return key.strip() if key else None
 

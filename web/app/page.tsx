@@ -40,7 +40,7 @@ export default function Page() {
         </div>
       </header>
 
-      {/* Body — single AnimatePresence for tab transitions */}
+      {/* Body - single AnimatePresence for tab transitions */}
       <div className="flex-1 flex flex-col gap-5 min-h-0">
         <AnimatePresence mode="wait">
           {tab === "compare" ? (

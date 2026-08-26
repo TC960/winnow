@@ -96,7 +96,7 @@ def test_unmatched_word_does_not_rewind_cursor():
     zero-width sentinel span at cursor and the cursor stays put. Previously
     a global find() fallback could return an index BEFORE the cursor,
     rewinding it and causing every subsequent word to re-match earlier text
-    — a cascade of overlapping spans."""
+    - a cascade of overlapping spans."""
     text = "alpha beta gamma delta epsilon"
     pairs = [("alpha", 1), ("beta", 1), ("gamma", 1),
              ("PHANTOM", 1),  # not in original
@@ -120,7 +120,7 @@ def test_union_output_bounded_under_misalignment():
     """Regression for the union token explosion: a misaligned canonical word
     used to rewind the cursor, producing overlapping spans whose gap-fill
     blew the splice output up many-fold. Now spans stay monotonic and the
-    splice joins only kept-word substrings — output is bounded by the kept
+    splice joins only kept-word substrings - output is bounded by the kept
     content regardless of how many phantom tokens LLMLingua emits."""
     text = "alpha beta gamma delta epsilon zeta eta theta iota kappa"
     pairs = [["alpha", 1], ["beta", 1], ["gamma", 1],

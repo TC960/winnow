@@ -8,7 +8,7 @@ import { StrikeText } from "./StrikeText";
 import { cn } from "@/lib/cn";
 
 // Speak-and-ask flow. Each utterance is compressed via plain LLMLingua-2
-// (NO AttentionRAG — dictation is too short to chunk meaningfully) and the
+// (NO AttentionRAG - dictation is too short to chunk meaningfully) and the
 // compressed prompt is sent to the downstream blackbox LLM. The LLM answer
 // is the main view; per-turn compression details sit "on the side" so the
 // audience can see what the LLM actually received vs. what was spoken.
@@ -238,7 +238,7 @@ export function SpeakCard() {
       <div ref={scrollRef} className="flex-1 overflow-y-auto scroll-soft px-5 py-4 space-y-5">
         {turns.length === 0 && (
           <div className="text-[12px] text-ink-faint italic text-center pt-8">
-            Speak a question — its compressed form is what reaches the LLM.
+            Speak a question - its compressed form is what reaches the LLM.
           </div>
         )}
 
@@ -263,7 +263,7 @@ function Turn({ turn: t }: { turn: Turn }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-        {/* LLM answer — main column */}
+        {/* LLM answer - main column */}
         <div className="md:col-span-3 rounded-xl border border-white/10 bg-white/[0.025] p-3">
           <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-ink-faint mb-1.5">
             <Sparkles className="w-3 h-3 text-cyan-accent" /> claude

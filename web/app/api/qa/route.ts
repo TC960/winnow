@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { MODELS, type ModelId } from "@/lib/tokens";
 
-// A/B Q&A endpoint. Fires TWO Anthropic calls in parallel — one with the raw
-// transcript, one with the compressed — using identical questions and the same
+// A/B Q&A endpoint. Fires TWO Anthropic calls in parallel - one with the raw
+// transcript, one with the compressed - using identical questions and the same
 // strict "answer only from this transcript" instruction. The matching answers
 // are the proof-of-fidelity: compression didn't drop the buried detail.
 

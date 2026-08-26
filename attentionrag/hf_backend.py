@@ -249,7 +249,7 @@ class HFBackend:
         # chunk to fall back on, and a "none" anchor carries no attention signal
         # to rank sentences). In that single-chunk case keep the chunk wholesale
         # instead of dropping it, so the downstream merge still has spans to work
-        # with. Multi-chunk inputs keep the normal per-chunk "none" drop — that
+        # with. Multi-chunk inputs keep the normal per-chunk "none" drop - that
         # coarse relevance gate is the point of AttentionRAG on long contexts.
         single_chunk = len(ids) <= chunk_size
         for i in range(0, len(ids), chunk_size):

@@ -5,7 +5,7 @@ import { GitCompare, FlaskConical } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/cn";
 
-// Top-level tab nav. Switching tabs DOES NOT reset session state — Compare
+// Top-level tab nav. Switching tabs DOES NOT reset session state - Compare
 // and Test share the same compressed transcript, so flipping between them
 // is just a view change.
 

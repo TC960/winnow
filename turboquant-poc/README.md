@@ -11,8 +11,8 @@ Based on the reference implementation at https://github.com/OmarHory/turboquant
 `DynamicCache` subclass passed as `past_key_values`.
 
 ## Files
-- `turboquant_poc.py` — standalone TurboQuant cache module (`TurboQuantMSE`, `TQLayer`, `TQCache`).
-- `modal_app.py` — Modal app: loads a model on A100-80GB, runs baseline + TurboQuant, reports compression. `TQCache` is inlined so the image is self-contained.
+- `turboquant_poc.py` - standalone TurboQuant cache module (`TurboQuantMSE`, `TQLayer`, `TQCache`).
+- `modal_app.py` - Modal app: loads a model on A100-80GB, runs baseline + TurboQuant, reports compression. `TQCache` is inlined so the image is self-contained.
 
 ## Run
 ```bash
@@ -38,12 +38,12 @@ Weights are cached on a Modal volume, so reruns skip the download.
 | **Qwen2.5-14B-Instruct** | 3.5-bit outlier | 3.25 | **4.27x** | correct linked-list code + explanation |
 
 The 14B (48 layers, 8 KV heads, head_dim=128) ran on the **same code** as the 7B
-with only a `--model-id` change — confirming the implementation generalizes
+with only a `--model-id` change - confirming the implementation generalizes
 across model size and family (Mistral → Qwen). Sample logs in `run_14b_*.log`.
 Note: the 3.5-bit outlier path is slower (pure-Python per-channel masking ×48
-layers, ~10 tok/s) — a perf characteristic, not a correctness issue.
+layers, ~10 tok/s) - a perf characteristic, not a correctness issue.
 
 ## Notes
-- Model-agnostic for standard attention (Llama/Mistral/Qwen/Phi, MHA or GQA, head_dim ~64–256). It auto-adapts to layer/head counts from `model.config`. No calibration — the random rotation is data-free.
+- Model-agnostic for standard attention (Llama/Mistral/Qwen/Phi, MHA or GQA, head_dim ~64–256). It auto-adapts to layer/head counts from `model.config`. No calibration - the random rotation is data-free.
 - Architectural exceptions: Multi-head Latent Attention (DeepSeek-V2/V3) stores a latent, not per-head K/V; models that force a non-`DynamicCache` (some hybrid/sliding caches) need the subclass to extend that cache type.
 - Token rate is below FP16 because this is a pure-PyTorch dequantize path; the paper's speedup needs custom CUDA kernels (out of scope for a functional POC).

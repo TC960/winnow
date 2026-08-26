@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 
 // Raw transcript column. Each utterance lands as a finalized block; the running
 // partial (interim Deepgram result) shows as a soft, dimmed tail.
-// When word-level keep/drop labels arrive, dropped words are struck through —
+// When word-level keep/drop labels arrive, dropped words are struck through -
 // that's the visual proof of what compression cut.
 
 const SPEAKER_COLORS = ["#ff5fb1", "#6ee7ff", "#ffd166", "#36f1a3", "#c084fc"];

@@ -14,7 +14,7 @@ import { Sparkline } from "./Sparkline";
 //   4. $ saved for the currently selected model
 //   5. avg compression latency
 //
-// Sixth, smaller projection: cost-per-hour at current rate — makes the savings
+// Sixth, smaller projection: cost-per-hour at current rate - makes the savings
 // feel real ("you'd save $X/month at 8 hrs/day").
 
 export function StatsBar() {
@@ -65,7 +65,7 @@ export function StatsBar() {
         </div>
       </div>
       <div>
-        <Label>$ saved — {MODELS[model].label.replace("Claude ", "")}</Label>
+        <Label>$ saved - {MODELS[model].label.replace("Claude ", "")}</Label>
         <div className="flex items-baseline gap-2 mt-1">
           <AnimatedNumber
             value={savedDollars}

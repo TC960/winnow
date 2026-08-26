@@ -30,11 +30,11 @@ export function WinnowLogoFunnel({ className, mono = false }: Props) {
       <path d="M4 6 L16 24" stroke={chaff} strokeWidth="1.3" strokeOpacity={mono ? 0.3 : 0.4} strokeLinecap="round" />
       <path d="M28 6 L16 24" stroke={chaff} strokeWidth="1.3" strokeOpacity={mono ? 0.3 : 0.4} strokeLinecap="round" />
 
-      {/* Mid lines — in-between signal. */}
+      {/* Mid lines - in-between signal. */}
       <path d="M10 6 L16 24" stroke={mid} strokeWidth="1.5" strokeOpacity={mono ? 0.55 : 0.7} strokeLinecap="round" />
       <path d="M22 6 L16 24" stroke={mid} strokeWidth="1.5" strokeOpacity={mono ? 0.55 : 0.7} strokeLinecap="round" />
 
-      {/* Center line — kept signal. */}
+      {/* Center line - kept signal. */}
       <path d="M16 5 L16 24" stroke={keep} strokeWidth="2.4" strokeLinecap="round" />
 
       <circle cx="16" cy="26" r="5" fill={`url(#funnel-glow-${mono ? "m" : "c"})`} />

@@ -3,7 +3,7 @@
 import { Mic, AudioLines, Scissors, Box, ChevronRight } from "lucide-react";
 import { useStore, totals } from "@/lib/store";
 
-// Visual pipeline strip for the Test tab. Purely architectural — tells the
+// Visual pipeline strip for the Test tab. Purely architectural - tells the
 // demo's story end-to-end so a judge can see every stage at a glance:
 //   Voice → Deepgram → LLMLingua-2 → Blackbox LLM
 // Sub-labels update with live numbers when compression runs.

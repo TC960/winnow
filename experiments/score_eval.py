@@ -148,7 +148,7 @@ def main():
             s = summarize(rows)
             kept = arm.get("kept_indices") or []
             leaked = sorted(set(kept) & distractors)
-            leaked_str = (",".join(map(str, leaked)) if distractors else "—") or "none"
+            leaked_str = (",".join(map(str, leaked)) if distractors else "-") or "none"
             kept_str = f"{len(kept)}/{arm.get('total_units','?')}" if distractors else "(single doc)"
             L.append(
                 f"| {armkey} | {arm['retention']} | {kept_str} | {leaked_str} | "
@@ -163,7 +163,7 @@ def main():
             for r in rows:
                 if r["fault"]:
                     faults[r["fault"]] = faults.get(r["fault"], 0) + 1
-            L.append(f"\n<details><summary>{tname} — {armkey} per-question</summary>\n")
+            L.append(f"\n<details><summary>{tname} - {armkey} per-question</summary>\n")
             L.append("| Q | gold | single? | answer | F1 | fault |")
             L.append("|---|---|---|---|---|---|")
             for r in rows:

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Winnow — real-time speech compression",
+  title: "Winnow - real-time speech compression",
   description: "Voice → Deepgram → LLMLingua-2 → LLM. Strip tokens, keep meaning.",
 };
 

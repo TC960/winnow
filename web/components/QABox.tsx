@@ -10,7 +10,7 @@ import { cn } from "@/lib/cn";
 // compressed transcript via /api/qa (parallel calls). Side-by-side answers
 // prove compression preserved the buried detail.
 //
-// Includes preset probes (#11) — one-click tests of specific facts in the
+// Includes preset probes (#11) - one-click tests of specific facts in the
 // hand-authored fixture. On stage you don't have to think of a question.
 
 const PRESETS = [
@@ -69,7 +69,7 @@ export function QABox() {
         <Sparkles className="w-4 h-4 text-cyan-accent" />
         <h2 className="text-sm font-semibold tracking-wide">PROOF OF FIDELITY · A/B Q&A</h2>
         <span className="text-[10px] text-ink-faint font-mono ml-auto">
-          ask the same question against raw vs compressed — answers should match
+          ask the same question against raw vs compressed - answers should match
         </span>
       </div>
 
@@ -143,7 +143,7 @@ function Verdict({ match, loading }: { match: boolean | null; loading: boolean }
         match ? "bg-keep/10 border border-keep/30 neon-text-keep" : "bg-amber-accent/10 border border-amber-accent/30 text-amber-accent"
       )}
     >
-      {match ? "✓ answers match — no information lost" : "△ answers differ — inspect"}
+      {match ? "✓ answers match - no information lost" : "△ answers differ - inspect"}
     </div>
   );
 }

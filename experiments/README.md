@@ -1,4 +1,4 @@
-# experiments/ — archived eval & research (not part of the product)
+# experiments/ - archived eval & research (not part of the product)
 
 This folder holds the investigation into **semantic sentence-dedup (MMR)** on top
 of the core `winnow` compressor. It is kept for reference and is **not** required
@@ -12,18 +12,18 @@ set, scored deterministically by having Claude answer comprehension questions
 
 ## Conclusion
 - **MMR sentence-dedup added nothing** at sane thresholds on realistic text
-  (identical tokens and F1 with/without). It only fired — and *over-pruned* — on
+  (identical tokens and F1 with/without). It only fired - and *over-pruned* - on
   an adversarially redundant synthetic doc. Not shipped in the core pipeline.
 - At 50–75% retention, LLMLingua-2 + reranker preserves facts well; the ramble
   scored a perfect 7/7.
 - In multi-doc, the real bottleneck was the **reranker** dropping a relevant
-  passage while keeping a distractor — not compression and not dedup.
+  passage while keeping a distractor - not compression and not dedup.
 
 ## LCLM + TurboQuant: timing & memory benchmark
 
 A second, independent experiment lives alongside the eval above. It measures the
 **latency and memory** trade-off of running an **LCLM** (Latent Context Language
-Model — encoder→adapter→decoder soft-token context compressor, arXiv:2606.09659)
+Model - encoder→adapter→decoder soft-token context compressor, arXiv:2606.09659)
 decoder with **vanilla fp16 KV cache** vs. with **TurboQuant** KV-cache
 compression (`TQCache`, our training-free random-rotation + Lloyd-Max quantizer).
 
@@ -49,19 +49,19 @@ The weights (`latent-context/0.6b-4b-LCLM-16x`) are read from the
 `turboquant-hf-cache` Modal volume (already populated; download-if-missing).
 
 ### LCLM-timing files
-- `lclm_tq_timing.py` — Modal app: `LCLMVanilla` + `LCLMTurboQuant` warm workers, inlined `TQCache`, filler-context generator.
-- `run_lclm_timing.py` — driver: sweeps context × TQ config × decode length → `lclm_tq_timing_results.json`.
-- `lclm_tq_timing_report.md` — the measured timing/memory comparison report.
+- `lclm_tq_timing.py` - Modal app: `LCLMVanilla` + `LCLMTurboQuant` warm workers, inlined `TQCache`, filler-context generator.
+- `run_lclm_timing.py` - driver: sweeps context × TQ config × decode length → `lclm_tq_timing_results.json`.
+- `lclm_tq_timing_report.md` - the measured timing/memory comparison report.
 
 ## Files (MMR eval)
-- `eval_modal.py` — Modal app exposing `compress_eval` (encoder-only) + the MMR pre-pass.
-- `eval_sets.py` — the two task fixtures (ramble + multi-doc) with gold QA.
-- `run_eval.py` — driver: runs both tasks × {no-dedup, +dedup} × {0.75, 0.5} retention.
-- `score_eval.py` — Claude reader + deterministic scoring → `eval_report.md`.
-- `run_arms.py` — older single-doc driver (superseded by `run_eval.py`).
-- `test_data.py` — the original synthetic stress-test doc.
-- `eval_report.md` — the scored comparison report.
-- `scratchpad.ipynb` — exploratory notebook.
+- `eval_modal.py` - Modal app exposing `compress_eval` (encoder-only) + the MMR pre-pass.
+- `eval_sets.py` - the two task fixtures (ramble + multi-doc) with gold QA.
+- `run_eval.py` - driver: runs both tasks × {no-dedup, +dedup} × {0.75, 0.5} retention.
+- `score_eval.py` - Claude reader + deterministic scoring → `eval_report.md`.
+- `run_arms.py` - older single-doc driver (superseded by `run_eval.py`).
+- `test_data.py` - the original synthetic stress-test doc.
+- `eval_report.md` - the scored comparison report.
+- `scratchpad.ipynb` - exploratory notebook.
 
 ## Re-running (from this folder)
 ```bash

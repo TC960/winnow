@@ -113,7 +113,7 @@ def compression_cell(arm, recs, retentions):
     if arm in TOKEN_ARMS:
         r = retentions.get(arm)
         if r is None:
-            return "—", "no compressed.json"
+            return "-", "no compressed.json"
         return f"{r:.1%} kept ({1.0 / r:.2f}x)", ""
     if arm == "vanilla_llm":
         return "1.00x (baseline)", "full fp16 KV"
@@ -135,7 +135,7 @@ def compression_cell(arm, recs, retentions):
         ])
         if seqx is not None:
             parts.append(f"{seqx:.2f}x seq")
-    return (" / ".join(parts) if parts else "—"), ", ".join(notes)
+    return (" / ".join(parts) if parts else "-"), ", ".join(notes)
 
 
 def main():
@@ -148,7 +148,7 @@ def main():
     by_arm = collect_answers()
     retentions = load_retention()
 
-    lines = ["# Winnow compression bench — results\n"]
+    lines = ["# Winnow compression bench - results\n"]
     cfg = data.get("config", {})
     lines.append(
         f"- dataset: `{cfg.get('source')}` | tasks: {cfg.get('tasks')} | "
@@ -166,7 +166,7 @@ def main():
         present.append(arm)
         s = score_arm(arm, recs, golds)
         comp, notes = compression_cell(arm, recs, retentions)
-        f1_str = f"{s['mean_f1']:.3f}" if s["mean_f1"] is not None else "—"
+        f1_str = f"{s['mean_f1']:.3f}" if s["mean_f1"] is not None else "-"
         lines.append(
             f"| {arm} | {f1_str} | {s['em']}/{s['total']} | "
             f"{s['correct']}/{s['total']} | {comp} | {notes} |"
@@ -184,7 +184,7 @@ def main():
         f.write(report)
     print(report)
     if not present:
-        print("No answer files yet — wrote REPORT.md with empty table.")
+        print("No answer files yet - wrote REPORT.md with empty table.")
     else:
         print(f"Scored arms: {', '.join(present)}")
     print("Wrote REPORT.md")

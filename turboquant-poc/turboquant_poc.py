@@ -1,16 +1,16 @@
 """
-turboquant_poc — minimal, self-contained TurboQuant KV-cache compression POC.
+turboquant_poc - minimal, self-contained TurboQuant KV-cache compression POC.
 
 Implements just enough to run text generation with a TurboQuant-compressed
 KV cache through HuggingFace `transformers`:
 
-  * TurboQuantMSE  — Algorithm 1 from "TurboQuant: Online Vector Quantization
+  * TurboQuantMSE  - Algorithm 1 from "TurboQuant: Online Vector Quantization
                      with Near-optimal Distortion Rate" (Zandieh et al.,
                      ICLR 2026, arXiv:2504.19874). A random-rotation +
                      Lloyd-Max scalar quantizer, fully torch / CUDA-capable.
-  * TQLayer        — a `transformers.cache_utils.DynamicLayer` subclass that
+  * TQLayer        - a `transformers.cache_utils.DynamicLayer` subclass that
                      stores per-layer KV state in TurboQuant-quantized form.
-  * TQCache        — a `transformers.cache_utils.DynamicCache` subclass usable
+  * TQCache        - a `transformers.cache_utils.DynamicCache` subclass usable
                      directly as `past_key_values` in `model.generate(...)`.
 
 This is a POC (prompt -> generate -> output), not the full benchmark suite.
@@ -18,7 +18,7 @@ It is based on the known-working inline implementation in
 `benchmarks/gpu.py` (the `BENCHMARK_SCRIPT`), which targets the *current*
 `transformers` cache API (`DynamicLayer.update`, `lazy_initialization`, the
 `keys`/`values` property pattern). Differences from the `turboquant` package
-version are intentional — see module notes at the bottom.
+version are intentional - see module notes at the bottom.
 
 Pure torch: no triton, no custom CUDA, no bit-packing. The codebook tables are
 computed once with numpy/scipy at construction time; everything on the hot path
@@ -377,6 +377,6 @@ __all__ = ["TurboQuantMSE", "TQLayer", "TQCache"]
 #      this module exposes the gpu.py names `mem_bits()` (TQCache + TQLayer) and
 #      `eff_bits()` as requested.
 #
-#   4. Bit-packing (turboquant/packing.py) is intentionally omitted — it is not
+#   4. Bit-packing (turboquant/packing.py) is intentionally omitted - it is not
 #      needed for a functional generate() POC, and mem_bits() already reports
 #      the true logical bit count.

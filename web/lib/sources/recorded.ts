@@ -4,14 +4,14 @@ import type { SourceConfig, SourceListener, TranscriptSource, Utterance } from "
 
 // Recorded source: fetches a JSON fixture (array of Utterance objects), then
 // replays them with their ORIGINAL relative timing. Indistinguishable from
-// live mic to anything downstream — same Utterance shape, same event timing
+// live mic to anything downstream - same Utterance shape, same event timing
 // model (partials between, then a speech_final-equivalent emission).
 //
 // Two ways to drive timing:
 //   - "preserve": real wall-clock between original startMs values
 //   - "compressed": cap pauses at 1.5s so the demo doesn't crawl
 //
-// Default: "compressed" — best stage feel.
+// Default: "compressed" - best stage feel.
 
 export type ReplayMode = "preserve" | "compressed";
 

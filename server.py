@@ -127,7 +127,7 @@ async def lifespan(_app: FastAPI):
     """
     global compressor, attn_service, turboquant, lclm
     with ExitStack() as stack:
-        # NB: no modal.enable_output() — its rich live-display can't be shared
+        # NB: no modal.enable_output() - its rich live-display can't be shared
         # across concurrent app.run() contexts (LiveError). Apps run quietly.
         # Start all GPU apps, tied to this process (identical mechanism).
         stack.enter_context(llmlingua2_modal.app.run())

@@ -2,7 +2,7 @@
 #
 # One command to bring the whole stack up for a demo:
 #   1. Deploy the GPU worker to Modal (idempotent).
-#   2. Warm it up — builds the GPU snapshot + loads the model so it's hot.
+#   2. Warm it up - builds the GPU snapshot + loads the model so it's hot.
 #   3. Expose the backend on a stable public URL via ngrok (static domain).
 #   4. Start the FastAPI backend that proxies requests to the worker.
 #
@@ -56,7 +56,7 @@ if [[ "${SKIP_NGROK:-0}" != "1" ]]; then
   echo "    Public URL: https://${NGROK_DOMAIN}  (logs: ./ngrok.log)"
   echo "    Set COMPRESS_BACKEND_URL=https://${NGROK_DOMAIN} in the frontend."
 else
-  echo "==> [3/4] Skipping ngrok (SKIP_NGROK=1) — backend will be local-only."
+  echo "==> [3/4] Skipping ngrok (SKIP_NGROK=1) - backend will be local-only."
 fi
 
 echo "==> [4/4] Starting backend API on http://localhost:${PORT} (Ctrl-C to stop)..."

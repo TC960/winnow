@@ -18,7 +18,7 @@ export function ModelPicker() {
         >
           {Object.values(MODELS).map((m) => (
             <option key={m.id} value={m.id}>
-              {m.label} — ${m.inputPerMTok}/M
+              {m.label} - ${m.inputPerMTok}/M
             </option>
           ))}
         </select>

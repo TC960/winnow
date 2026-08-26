@@ -1,7 +1,7 @@
 # AttentionRAG
 
 A faithful, runnable implementation of **AttentionRAG: Attention-Guided Context
-Pruning in Retrieval-Augmented Generation** (Fang, Sun, Shi, Gu — arXiv:2503.10720).
+Pruning in Retrieval-Augmented Generation** (Fang, Sun, Shi, Gu - arXiv:2503.10720).
 
 AttentionRAG compresses retrieved RAG context by reformulating the query into an
 incomplete-answer template whose single blank ("focal token") does next-token
@@ -53,7 +53,7 @@ ratio, and the answer from both the compressed and the full context.
 
 ## Hyperparameters
 
-`chunk_size` (`m`) and `top_k` (`k`) are the only compression knobs — exactly as
+`chunk_size` (`m`) and `top_k` (`k`) are the only compression knobs - exactly as
 in the paper (no fixed token budget; the ratio is content-adaptive). Paper
 guidance: larger `m` / higher `k` for long LongBench contexts (e.g. m=300,
 k=12); smaller `m` / lower `k` for short, sparse BABILong-style contexts
@@ -79,7 +79,7 @@ Deliberate, documented choices:
   local model (self-contained, no API key). Set `use_openai_hint=True` +
   `OPENAI_API_KEY` in `HFBackend` to match the paper exactly.
 - **Backbone**: Qwen-2.5-7B-Instruct (one of the paper's models; ungated).
-  Llama-3.1-8B-Instruct also works — change `MODEL_NAME` (gated; needs HF token).
+  Llama-3.1-8B-Instruct also works - change `MODEL_NAME` (gated; needs HF token).
 - **Head aggregation**: the paper's Eq. 2 sums over layers but does not specify
   head reduction; we average over heads (standard), then sum over layers.
 - **Final-answer prompt** is a standard LongBench-style RAG prompt (the paper's

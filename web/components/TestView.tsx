@@ -42,7 +42,7 @@ export function TestView() {
         />
       </header>
 
-      {/* Pipeline strip — visual story + merge-mode / provider toggles */}
+      {/* Pipeline strip - visual story + merge-mode / provider toggles */}
       <PipelineStrip />
 
       {/* Two parallel demo flows */}

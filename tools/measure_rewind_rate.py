@@ -5,7 +5,7 @@ Why this exists
 ---------------
 The previous global-find fallback could silently rewind the cursor and produce
 a cascade of overlapping spans (the union token explosion). The fix replaces
-that fallback with a zero-width sentinel. We claimed the path is "rare" —
+that fallback with a zero-width sentinel. We claimed the path is "rare" -
 this script makes that claim falsifiable.
 
 What it measures
@@ -20,7 +20,7 @@ in two ways:
                 pure ASCII, so the rate isolates the impact of unicode
                 normalization drift on tokens with combining marks.
   proxy_hard  : proxy_soft + ASCII-folding of smart quotes, en/em-dashes,
-                ellipsis, and NBSP. This is an aggressive stress test — once
+                ellipsis, and NBSP. This is an aggressive stress test - once
                 a short token like '-' is hunted for in text that only
                 contains '–', `find()` either misses (sentinel fires) OR
                 matches an unrelated later hyphen and advances the cursor
@@ -69,7 +69,7 @@ _NORMALIZE_TABLE = str.maketrans({
     "“": '"',   # left double quote
     "”": '"',   # right double quote
     "–": "-",   # en dash
-    "—": "-",   # em dash
+    "-": "-",   # em dash
     "…": "...", # ellipsis
     " ": " ",   # non-breaking space
 })
@@ -106,7 +106,7 @@ def _measure(contexts: list, label_fn) -> dict:
     per_ex = []
     for ctx in contexts:
         labels = label_fn(ctx)
-        # Mode/spans don't matter for the counter — pick something cheap.
+        # Mode/spans don't matter for the counter - pick something cheap.
         out = merge_compress(ctx, labels, [(0, len(ctx))], mode="union")
         total_words += out["n_words"]
         total_unlocated += out["n_unlocated_words"]
@@ -149,7 +149,7 @@ def main() -> int:
         print("   one short normalized token like '-' falsely matches an")
         print("   unrelated character far ahead, pushing the cursor past")
         print("   valid future words. The counter captures both sentinel")
-        print("   misses and post-overshoot misses — that's correct, both")
+        print("   misses and post-overshoot misses - that's correct, both")
         print("   modes were silent before.)")
     print()
     print("baseline  = whitespace split (verbatim) -> 0 unlocated EXPECTED.")

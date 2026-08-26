@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 // Smoothly tweens a displayed number toward the target. We use this for token
-// counts and savings so the stats bar never *jumps* — judges feel the motion.
+// counts and savings so the stats bar never *jumps* - judges feel the motion.
 
 export function AnimatedNumber({
   value,

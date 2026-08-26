@@ -14,14 +14,14 @@ question-aware COARSE document selection inside a single `compress_prompt` call
             context, rate, target_token, use_context_level_filter,
             target_context, context_level_rate, context_level_target_token, ...)
 
-It forwards ONLY those args — `question`, `instruction`, `rank_method`, and
+It forwards ONLY those args - `question`, `instruction`, `rank_method`, and
 `reorder_context` are silently dropped. And `compress_prompt_llmlingua2(...)` has
 NO `question`/`rank_method`/`reorder_context` parameters at all. So with
 `use_llmlingua2=True`:
 
   * the only document-level knob (`use_context_level_filter` + `target_context`/
     `context_level_rate`/`context_level_target_token`) ranks documents by the
-    encoder's own predicted compression score — it is QUESTION-BLIND;
+    encoder's own predicted compression score - it is QUESTION-BLIND;
   * `rank_method` (including `bge_reranker`) only takes effect on the causal
     LongLLMLingua path (`use_llmlingua2=False`), which loads a causal backbone we
     are explicitly avoiding.
@@ -384,7 +384,7 @@ def two_stage_compress(
 
     return {
         "compressed_prompt": final_prompt,
-        # the compressed CONTEXT only (no instruction/question) — what a reader
+        # the compressed CONTEXT only (no instruction/question) - what a reader
         # should be given alongside its own downstream questions:
         "compressed_context": compressed_context,
         # context-only numbers straight from LLMLingua-2 (the token stage):

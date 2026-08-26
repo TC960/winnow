@@ -26,7 +26,7 @@ export function WinnowLogo({ className, mono = false }: Props) {
         </linearGradient>
       </defs>
 
-      {/* Outer chaff strokes — leaning outward. */}
+      {/* Outer chaff strokes - leaning outward. */}
       <path d="M3.5 5 L8 26" stroke={chaff} strokeWidth="1.4" strokeOpacity={mono ? 0.3 : 0.45} strokeLinecap="round" />
       <path d="M28.5 5 L24 26" stroke={chaff} strokeWidth="1.4" strokeOpacity={mono ? 0.3 : 0.45} strokeLinecap="round" />
 
@@ -39,7 +39,7 @@ export function WinnowLogo({ className, mono = false }: Props) {
       {/* Halo + kept-signal dot at the V apex. */}
       <circle cx="16" cy="26.5" r="5" fill={`url(#winnow-glow-${mono ? "m" : "c"})`} />
 
-      {/* Inner V — kept signal converging. */}
+      {/* Inner V - kept signal converging. */}
       <path
         d="M10.5 5 L16 24 L21.5 5"
         stroke={`url(#winnow-inner-${mono ? "m" : "c"})`}
