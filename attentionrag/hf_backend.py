@@ -46,15 +46,19 @@ class HFBackend:
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
+        from model_guard import guarded_from_pretrained
+
         self.torch = torch
         self.device = device
         self.model_name = model_name
         self.use_openai_hint = use_openai_hint
         self.openai_model = openai_model
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        # Pinned revision + safetensors only + no remote code; see model_guard.
+        self.tokenizer = guarded_from_pretrained(AutoTokenizer, model_name)
         # eager attention is REQUIRED to get attention weights back from forward.
-        self.model = AutoModelForCausalLM.from_pretrained(
+        self.model = guarded_from_pretrained(
+            AutoModelForCausalLM,
             model_name,
             torch_dtype=getattr(torch, dtype),
             attn_implementation="eager",
@@ -249,7 +253,7 @@ class HFBackend:
         # chunk to fall back on, and a "none" anchor carries no attention signal
         # to rank sentences). In that single-chunk case keep the chunk wholesale
         # instead of dropping it, so the downstream merge still has spans to work
-        # with. Multi-chunk inputs keep the normal per-chunk "none" drop — that
+        # with. Multi-chunk inputs keep the normal per-chunk "none" drop - that
         # coarse relevance gate is the point of AttentionRAG on long contexts.
         single_chunk = len(ids) <= chunk_size
         for i in range(0, len(ids), chunk_size):
