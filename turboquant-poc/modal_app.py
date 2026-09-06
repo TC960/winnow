@@ -39,6 +39,8 @@ image = (
         "numpy",
     )
     .env({"HF_HOME": "/cache/hf"})
+    # Artifact provenance guard (pinned revision, safetensors only, no remote code).
+    .add_local_python_source("model_guard")
 )
 
 app = modal.App("turboquant-poc")
@@ -263,6 +265,8 @@ def run(prompt: str, bit_width: int = 4, max_new_tokens: int = 200,
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
+    from model_guard import guarded_from_pretrained
+
     hf_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN")
     device = torch.device("cuda")
     print(f"=== TurboQuant POC ===", flush=True)
@@ -271,9 +275,11 @@ def run(prompt: str, bit_width: int = 4, max_new_tokens: int = 200,
     print(f"TurboQuant bit_width={bit_width} outlier_channels={outlier_channels} outlier_bits={outlier_bits}", flush=True)
 
     print("Loading model + tokenizer...", flush=True)
-    tokenizer = AutoTokenizer.from_pretrained(model_id, token=hf_token)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_id, dtype=torch.float16, device_map="cuda", low_cpu_mem_usage=True, token=hf_token
+    # Pinned revision + safetensors only + no remote code; see model_guard.
+    tokenizer = guarded_from_pretrained(AutoTokenizer, model_id, token=hf_token)
+    model = guarded_from_pretrained(
+        AutoModelForCausalLM, model_id,
+        dtype=torch.float16, device_map="cuda", low_cpu_mem_usage=True, token=hf_token
     )
     model.eval()
     if tokenizer.pad_token is None:
