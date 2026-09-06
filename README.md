@@ -147,6 +147,32 @@ multiply.
 
 ---
 
+## Installing just the compression core (no GPU, no Modal, no keys)
+
+The CPU-side half of Winnow ships as a standalone distribution, `winnow-core`.
+It is the part an external consumer can actually use without a GPU: the
+AttentionRAG selection logic (`attentionrag`), the two-compressor token merge
+(`token_merge`), and the model-artifact guard (`model_guard`).
+
+Prerequisites: Python 3.11, 3.12 or 3.14. Nothing else - the core has zero
+runtime dependencies.
+
+```bash
+python3 -m venv .venv && . .venv/bin/activate
+pip install build && python -m build          # writes dist/winnow_core-0.1.0-*.whl
+pip install dist/winnow_core-0.1.0-py3-none-any.whl
+python -m attentionrag.test_core              # 10/10
+```
+
+The model-touching half (`attentionrag.hf_backend`, and reading real tensors
+through `model_guard.safe_load_state_dict`) needs torch and transformers:
+
+```bash
+pip install "dist/winnow_core-0.1.0-py3-none-any.whl[hf]"
+```
+
+Exact resolved versions are recorded in `requirements-hf.lock`.
+
 ## Local setup
 
 Prerequisites:
