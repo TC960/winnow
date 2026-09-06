@@ -20,6 +20,11 @@ venv/
 experiments/eval_results.json
 experiments/eval_outputs*.json
 
+# Python build artifacts (winnow-core wheel/sdist)
+/dist/
+/build/
+*.egg-info/
+
 # Misc
 .DS_Store
 *.log
