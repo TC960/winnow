@@ -26,8 +26,6 @@ image = (
         "scipy", "numpy",
     )
     .env({"HF_HOME": CACHE_DIR})
-    # Artifact provenance guard (pinned revision, safetensors only, no remote code).
-    .add_local_python_source("model_guard")
 )
 
 app = modal.App("winnow-bench-llm", image=image)
@@ -233,15 +231,11 @@ class BenchLLM:
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
-        from model_guard import guarded_from_pretrained
-
         token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN")
         self.torch = torch
-        # Pinned revision + safetensors only + no remote code; see model_guard.
-        self.tokenizer = guarded_from_pretrained(AutoTokenizer, MODEL_ID, token=token)
-        self.model = guarded_from_pretrained(
-            AutoModelForCausalLM, MODEL_ID,
-            dtype=torch.float16, device_map="cuda",
+        self.tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, token=token)
+        self.model = AutoModelForCausalLM.from_pretrained(
+            MODEL_ID, dtype=torch.float16, device_map="cuda",
             low_cpu_mem_usage=True, token=token,
         )
         self.model.eval()

@@ -24,7 +24,6 @@ Empty-AttentionRAG fallback: if AttentionRAG kept nothing (all chunks gated
 from __future__ import annotations
 
 import re
-from bisect import bisect_right
 from typing import List, Optional, Sequence, Tuple
 
 _TRUE = ("1", "1.0", "true", "True")
@@ -94,25 +93,7 @@ def reconstruct_word_spans(
 ) -> List[Tuple[str, int, int, int]]:
     """Locate each labeled word in `original`, in order, returning
     (word, label, start, end). Uses a moving cursor so repeated words map to
-    successive occurrences (no duplicate ambiguity).
-
-    Invariant: the returned spans are monotonically non-decreasing in start
-    and non-overlapping. When a labeled word can't be located at-or-after the
-    cursor (LLMLingua tokenization quirk: NFC/NFD mismatch, BPE detokenization
-    rejoining, glued punctuation, sentinel tokens, etc.), it gets a zero-width
-    sentinel span ``(cursor, cursor)`` and the cursor stays put. We deliberately
-    do NOT fall back to a global ``find()`` - that can return an index BEFORE
-    the cursor, rewinding it and producing a cascade of overlapping spans for
-    every subsequent word. The zero-width sentinel preserves index-alignment
-    with the input labels (so the strike-through UI and downstream masks stay
-    aligned by position) while ``splice_kept`` falls back to the canonical word
-    text for any kept-but-unlocated entry, so content is not lost.
-
-    The actual rate of zero-width sentinels in production is exposed via
-    ``merge_compress(...)["n_unlocated_words"]`` - see that field, and the
-    measurement script in ``tools/measure_rewind_rate.py``, before assuming
-    this path is cold.
-    """
+    successive occurrences (no duplicate ambiguity)."""
     spans: List[Tuple[str, int, int, int]] = []
     cursor = 0
     for word, label in labeled_words:
@@ -120,7 +101,9 @@ def reconstruct_word_spans(
             spans.append((word, label, cursor, cursor))
             continue
         idx = original.find(word, cursor)
-        if idx == -1:
+        if idx == -1:  # tolerant fallback: search from start
+            idx = original.find(word)
+        if idx == -1:  # unmatched -> zero-width at cursor (rare)
             spans.append((word, label, cursor, cursor))
             continue
         end = idx + len(word)
@@ -132,58 +115,20 @@ def reconstruct_word_spans(
 # --------------------------------------------------------------------------- #
 # AttentionRAG mask via char-span overlap                                     #
 # --------------------------------------------------------------------------- #
-def _coalesce(spans: Sequence[Tuple[int, int]]) -> Tuple[List[int], List[int]]:
-    """Sort and coalesce kept spans into disjoint, non-touching intervals.
-
-    Returns parallel (starts, ends) lists. Because the survivors never touch,
-    BOTH lists are strictly increasing, which is what lets `attnrag_mask` find
-    a word's candidate interval with one bisect instead of a scan.
-
-    Coalescing touching spans (``s <= cur_end``) does not change any overlap
-    answer: a word can only sit in the seam between two touching spans if it is
-    zero-width at the shared boundary, and that word already matched the right
-    span under the per-span rule.
-    """
-    starts: List[int] = []
-    ends: List[int] = []
-    for s, e in sorted((int(a), int(b)) for a, b in spans):
-        if ends and s <= ends[-1]:
-            if e > ends[-1]:
-                ends[-1] = e
-        else:
-            starts.append(s)
-            ends.append(e)
-    return starts, ends
+def _overlaps(s: int, e: int, spans: Sequence[Tuple[int, int]]) -> bool:
+    for ks, ke in spans:
+        if s < ke and e > ks:  # half-open interval overlap
+            return True
+        if s == e and ks <= s < ke:  # zero-width word inside a span
+            return True
+    return False
 
 
 def attnrag_mask(
     word_spans: Sequence[Tuple[str, int, int, int]],
     kept_spans: Sequence[Tuple[int, int]],
 ) -> List[bool]:
-    """Keep-mask over the canonical words: True iff the word's char-span meets a
-    kept AttentionRAG span.
-
-    The rule is unchanged -- half-open overlap (``s < ke and e > ks``), plus a
-    zero-width word counting as inside when ``ks <= s < ke``. What changed is the
-    lookup: this used to test every word against every kept span, which is
-    O(words x spans). On a 36.5k-word input with 1739 kept spans that quadratic
-    term dominated the whole merge (see .agent-work/scale_merge.py). Coalescing
-    the spans once and bisecting makes it O(words log spans).
-    """
-    starts, ends = _coalesce(kept_spans)
-    if not starts:
-        return [False] * len(word_spans)
-
-    mask: List[bool] = []
-    n = len(starts)
-    for _w, _l, s, e in word_spans:
-        i = bisect_right(ends, s)  # first interval whose end is past s
-        if i >= n:
-            mask.append(False)
-            continue
-        ks = starts[i]
-        mask.append(ks <= s if s == e else ks < e)
-    return mask
+    return [_overlaps(s, e, kept_spans) for _w, _l, s, e in word_spans]
 
 
 # --------------------------------------------------------------------------- #
@@ -196,13 +141,14 @@ def splice_kept(
 ) -> str:
     """Reconstruct the compressed text from the kept canonical words.
 
-    Each kept word contributes ONLY its own token - the exact original substring
-    when its located span is valid & forward, else the canonical word text for
-    unlocated entries (zero-width sentinel spans) - joined by a single space.
-    We deliberately do NOT re-slice arbitrary ``original[prev_end:s]`` gaps:
-    even with monotonic spans, gap-fill re-inserts dropped tokens between kept
-    runs, which blew union output up many-fold under the old behavior. Joining
-    kept tokens keeps the output bounded by the kept content.
+    Each kept word contributes ONLY its own token — the exact original substring
+    when its located span is valid & forward, else the label text — joined by a
+    single space. We deliberately do NOT re-slice arbitrary ``original[prev_end:s]``
+    gaps: when ``reconstruct_word_spans`` yields non-monotonic spans (repeated
+    tokens make the moving ``find()`` reset backward), that gap-fill re-inserts
+    large overlapping spans and blows the output up many-fold — worst in union,
+    which keeps long unbroken runs of words. Joining kept tokens keeps the output
+    bounded by the kept content (no duplication possible).
     """
     n = len(original)
     out: List[str] = []
@@ -251,11 +197,6 @@ def merge_compress(
 
     compressed = splice_kept(original, word_spans, merged)
     merged_labels = [[w, 1 if k else 0] for (w, _l, _s, _e), k in zip(word_spans, merged)]
-    # Count entries that fell back to the zero-width sentinel (non-empty word,
-    # but reconstruct_word_spans couldn't locate it at-or-after the cursor).
-    # Exposes the actual rate of LLMLingua/original tokenization drift so the
-    # "rare path" assumption stays falsifiable.
-    n_unlocated = sum(1 for w, _l, s, e in word_spans if w and s == e)
 
     return {
         "compressed_prompt": compressed,
@@ -264,7 +205,6 @@ def merge_compress(
         "used_llmlingua_fallback": used_fallback,
         "n_words": len(word_spans),
         "n_kept": sum(1 for k in merged if k),
-        "n_unlocated_words": n_unlocated,
         "mask_llmlingua": [1 if x else 0 for x in mask_L],
         "mask_attentionrag": [1 if x else 0 for x in mask_A],
     }

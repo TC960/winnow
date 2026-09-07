@@ -95,10 +95,8 @@ def main():
     try:
         from transformers import AutoTokenizer
 
-        from model_guard import guarded_from_pretrained
-
-        tok = guarded_from_pretrained(
-            AutoTokenizer, "microsoft/llmlingua-2-xlm-roberta-large-meetingbank"
+        tok = AutoTokenizer.from_pretrained(
+            "microsoft/llmlingua-2-xlm-roberta-large-meetingbank"
         )
     except Exception as exc:
         print(f"[tok] whitespace fallback ({exc})", flush=True)

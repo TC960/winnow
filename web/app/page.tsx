@@ -1,9 +1,8 @@
 "use client";
 
+import { Wind } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Tabs } from "@/components/Tabs";
-// Swap to "@/components/WinnowLogoFunnel" for the abstract compression-funnel mark.
-import { WinnowLogo } from "@/components/WinnowLogo";
 import { SourceToggle } from "@/components/SourceToggle";
 import { CompareView } from "@/components/CompareView";
 import { TestView } from "@/components/TestView";
@@ -19,8 +18,8 @@ export default function Page() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <WinnowLogo className="w-9 h-9" mono />
-              <div className="absolute inset-0 blur-md bg-white/15 -z-10" />
+              <Wind className="w-7 h-7 text-keep" />
+              <div className="absolute inset-0 blur-md bg-keep/40 -z-10" />
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight">

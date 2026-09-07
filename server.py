@@ -74,31 +74,6 @@ import turboquant_modal
 # Token-by-token merge of LLMLingua + AttentionRAG keep-decisions (pure-python).
 from token_merge import merge_compress, normalize_labels
 
-
-def _normalize_attn_result(attn_out):
-    """Normalize an attn_service.compress_spans result (or exception) into the
-    tuple (kept_spans, attn_empty, hint, kept_chunks) that merge_compress and
-    the response models consume.
-
-    Policy: a 'none' hint prefix on multi-chunk inputs forces LLMLingua-only
-    fallback (the per-chunk relevance gate is the point of AttentionRAG on long
-    contexts). On single-chunk inputs, compress_spans already keeps the whole
-    chunk wholesale on a 'none' hint, so we honor those spans rather than
-    discarding them. Genuine emptiness (no kept_spans at all) always falls back.
-
-    Used by both /compress and /playground so the two endpoints can't drift on
-    this policy.
-    """
-    if isinstance(attn_out, Exception):
-        return [], True, None, "0/0 (attnrag failed)"
-    kept_spans = attn_out.get("kept_spans", [])
-    single_chunk = attn_out.get("n_chunks", 0) == 1
-    forced_empty = attn_out.get("is_empty_prefix", False) and not single_chunk
-    attn_empty = forced_empty or not kept_spans
-    hint = attn_out.get("hint_prefix")
-    kept_chunks = f"{attn_out.get('n_kept_chunks', 0)}/{attn_out.get('n_chunks', 0)}"
-    return kept_spans, attn_empty, hint, kept_chunks
-
 # Black-box downstream LLM callers (Claude / ChatGPT) reused for the playground.
 from downstream import (
     DEFAULT_MODEL as BLACKBOX_DEFAULT_MODEL,
@@ -332,7 +307,21 @@ async def compress(req: CompressRequest):
     if not word_labels:
         raise HTTPException(status_code=502, detail="LLMLingua returned no labels")
 
-    kept_spans, attn_empty, hint, kept_chunks = _normalize_attn_result(attn_out)
+    # AttentionRAG failure -> treat as empty -> fallback to LLMLingua-only.
+    if isinstance(attn_out, Exception):
+        kept_spans, attn_empty = [], True
+        hint, kept_chunks = None, "0/0 (attnrag failed)"
+    else:
+        kept_spans = attn_out.get("kept_spans", [])
+        # A "none" hint prefix normally makes us fall back to LLMLingua-only. But
+        # for a single-chunk (short, <= chunk_size) input, compress_spans keeps
+        # the whole chunk, so we honor those spans instead of discarding them on
+        # a none hint. Genuine emptiness (no kept_spans) still falls back, via
+        # merge_compress's `not kept_spans` guard.
+        single_chunk = attn_out.get("n_chunks", 0) == 1
+        attn_empty = attn_out.get("is_empty_prefix", False) and not single_chunk
+        hint = attn_out.get("hint_prefix")
+        kept_chunks = f"{attn_out.get('n_kept_chunks', 0)}/{attn_out.get('n_chunks', 0)}"
 
     merged = merge_compress(
         req.text, word_labels, kept_spans, mode=req.mode, attnrag_empty=attn_empty
@@ -497,7 +486,8 @@ async def _layer1_raw(req: PlaygroundRequest) -> dict:
         if isinstance(llm_out, Exception):
             raise HTTPException(status_code=502, detail=f"LLMLingua failed: {llm_out}")
         labels = llm_out.get("fn_labeled_original_prompt") or llm_out.get("word_labels")
-        kept_spans, attn_empty, _hint, _kept_chunks = _normalize_attn_result(attn_out)
+        kept_spans = [] if isinstance(attn_out, Exception) else attn_out.get("kept_spans", [])
+        attn_empty = isinstance(attn_out, Exception) or not kept_spans
         merged = merge_compress(req.text, labels, kept_spans, mode=req.combine, attnrag_empty=attn_empty)
         return {
             "compressed_text": merged["compressed_prompt"], "methods": ["llmlingua", "attentionrag"],

@@ -48,10 +48,8 @@ def load_tokenizer():
     try:
         from transformers import AutoTokenizer
 
-        from model_guard import guarded_from_pretrained
-
-        _TOK = guarded_from_pretrained(
-            AutoTokenizer, "microsoft/llmlingua-2-xlm-roberta-large-meetingbank"
+        _TOK = AutoTokenizer.from_pretrained(
+            "microsoft/llmlingua-2-xlm-roberta-large-meetingbank"
         )
         _TOK_KIND = "xlm-roberta"
         print("[tok] loaded xlm-roberta tokenizer", flush=True)
